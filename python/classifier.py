@@ -51,15 +51,16 @@ class classifier:
                     '''
 
                 ####### Transformations on the Array #######
-
                     d=des.flatten()
                     trainingData.append(d)
                     classes.append(cl)
 
-            cl = cl+1
+            cl = cl + 1
+
         np.savez('Data',trainingData,labels, classes)
 
     def classifieSample(self):
+
         npzfile = np.load('Data.npz')
         trainingData = npzfile['arr_0']
         labels = npzfile['arr_1']
@@ -67,10 +68,6 @@ class classifier:
 
         X = trainingData
         y = classes
-
-        C=1.0
-        clf = svm.SVC(kernel='poly',C=C)
-        clf.fit(X,y)
 
         knn = KNeighborsClassifier(n_neighbors=15,weights='distance')
         knn.fit(X,y)
@@ -92,7 +89,6 @@ class classifier:
 
             ## Normalize the Data
             if len(kp) > 15:
-
 
                 kp = kp[:15]
                 kp, des = orb.compute(component, kp)
