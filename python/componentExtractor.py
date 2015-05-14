@@ -1,5 +1,4 @@
 import cv2
-import random
 import numpy as np
 
 class componentExtractor:
@@ -19,14 +18,14 @@ class componentExtractor:
 
         components = []
         imgray = cv2.cvtColor(self._image, cv2.COLOR_BGR2GRAY)
-        ret, thresh = cv2.threshold(imgray, 100, 255, 0)
+        ret, thresh = cv2.threshold(imgray, 100, 255, 0) # Better Threshold value?
         contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         for i,contour in enumerate(contours):
             if (cv2.contourArea(contour)>200):
                 rect = cv2.boundingRect(contours[i])
                 component = cv2.cv.GetSubRect(cv2.cv.fromarray(self._image),rect)
-                components.append(component)
+                components.append(np.asanyarray(component,dtype='uint8'))
                 #cv2.drawContours(im, contours, i, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), -1)
 
         ############### Debug ##################
@@ -35,3 +34,4 @@ class componentExtractor:
         cv2.imshow("contours", drawing)
         '''
         return components
+
