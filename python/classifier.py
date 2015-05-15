@@ -102,7 +102,7 @@ class classifier:
 
 
 
-    def addImageToTrainingSet(self,InputImage,cl):
+    def addImageToTrainingSet(self, InputImage, cl):
         '''
 
         :param InputImage: Image to be added to training set.

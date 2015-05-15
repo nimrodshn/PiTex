@@ -3,8 +3,11 @@ import numpy as np
 import random
 class componentExtractor:
 
-
     def __init__(self, inputImage):
+        '''
+        :param inputImage:
+        :return: Constructor for the Main image processing and segmentation class.
+        '''
         self._image = inputImage
 
 
@@ -12,14 +15,34 @@ class componentExtractor:
     def extractComponents(self):
 
         """
-        The main segmentation function
+        Main image processing and segmentation function
         returns: a list of components to be analyzed as "suspected Forams".
         """
 
-        components = []
-        imgray = cv2.cvtColor(self._image, cv2.COLOR_BGR2GRAY)
+        img = self._image
+        maxIntensity = 255.0
 
-        ret, thresh = cv2.threshold(imgray, 90, 255, 0) # Better Threshold value?
+        # Parameters for manipulating image data
+        phi = 1
+        theta = 1
+
+        # Decrease intensity such that
+        # dark pixels become much darker,
+        # bright pixels become slightly dark
+        enhanced_contrast = (maxIntensity/phi)*(img/(maxIntensity/theta))**0.5
+        enhanced_contrast = (maxIntensity/phi)*(enhanced_contrast/(maxIntensity/theta))**2
+        contrast = np.array(enhanced_contrast,dtype=np.uint8)
+
+        cv2.namedWindow("contrast enhanced", cv2.WINDOW_NORMAL)
+        cv2.imshow("contrast enhanced", contrast)
+
+        components = []
+        imgray = cv2.cvtColor(contrast, cv2.COLOR_BGR2GRAY)
+
+        # What method should we use?
+        ret, thresh = cv2.threshold(imgray ,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        #ret, thresh = cv2.threshold(imgray,100,255,0)
+
         contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         im = cv2.cvtColor(imgray,cv2.COLOR_GRAY2BGR)
         for i,contour in enumerate(contours):
