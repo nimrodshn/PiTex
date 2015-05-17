@@ -19,25 +19,8 @@ class componentExtractor:
         returns: a list of components to be analyzed as "suspected Forams".
         """
 
-        img = self._image
-        maxIntensity = 255.0
-
-        # Parameters for manipulating image data
-        phi = 1
-        theta = 1
-
-        # Decrease intensity such that
-        # dark pixels become much darker,
-        # bright pixels become slightly dark
-        enhanced_contrast = (maxIntensity/phi)*(img/(maxIntensity/theta))**0.5
-        enhanced_contrast = (maxIntensity/phi)*(enhanced_contrast/(maxIntensity/theta))**2
-        contrast = np.array(enhanced_contrast,dtype=np.uint8)
-
-        cv2.namedWindow("contrast enhanced", cv2.WINDOW_NORMAL)
-        cv2.imshow("contrast enhanced", contrast)
-
         components = []
-        imgray = cv2.cvtColor(contrast, cv2.COLOR_BGR2GRAY)
+        imgray = cv2.cvtColor(self._image, cv2.COLOR_BGR2GRAY)
 
         # What method should we use?
         ret, thresh = cv2.threshold(imgray ,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
@@ -47,10 +30,25 @@ class componentExtractor:
         im = cv2.cvtColor(imgray,cv2.COLOR_GRAY2BGR)
         for i,contour in enumerate(contours):
             if (cv2.contourArea(contour)>200):
+
                 rect = cv2.boundingRect(contours[i])
                 component = cv2.cv.GetSubRect(cv2.cv.fromarray(self._image),rect)
+
                 c = np.asanyarray(component,dtype='uint8')
-                components.append(c)
+
+                maxIntensity = 255.0
+
+                # Parameters for manipulating image data
+                phi = 1
+                theta = 1
+
+                # Decrease intensity such that
+                # dark pixels become much darker,
+                # bright pixels become slightly dark
+                enhanced_contrast = (maxIntensity/phi)*(c/(maxIntensity/theta))**0.5
+                contrast = np.array(enhanced_contrast,dtype=np.uint8)
+
+                components.append(contrast)
                 cv2.drawContours(im, contours, i, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), -1)
 
         ############### Debug ##################
