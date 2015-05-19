@@ -12,11 +12,11 @@ class dataSetOrginizer:
 
 
     def InputDataset(self,name):
-        '''
+        """
         Inputs The Images for Training set to be created.
         :param name:
         :return:
-        '''
+        """
 
 
     def createTrainingFromDataset(self, name, location=''):
