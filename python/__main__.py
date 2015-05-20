@@ -4,19 +4,26 @@ from Tkinter import *
 from GUI import ForamGUI
 
 
-__author__ = 'user'
+__author__ = 'Nimrod Shneor'
 
-img = cv.imread("..//Samples//1//2.jpg")
-cv.namedWindow("Sample",cv.WINDOW_NORMAL)
-cv.imshow("Sample",img)
+def main():
 
-root = Tk()
-ex = ForamGUI(root)
-root.geometry("1280x720")
-root.mainloop()
+    img = cv.imread("..//Samples//1//2.jpg")
+    cv.namedWindow("Sample",cv.WINDOW_NORMAL)
+    cv.imshow("Sample",img)
 
-cl = classifier(img)
-cl.classifieSample()
+    root = Tk()
+    ForamGUI(root)
+    root.geometry("1280x720")
+    root.mainloop()
 
 
-cv.waitKey()
+    cl = classifier(img)
+    cl.classifieSample()
+
+
+    cv.waitKey()
+
+
+if __name__ == '__main__':
+    main()

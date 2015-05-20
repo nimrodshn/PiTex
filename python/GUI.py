@@ -14,22 +14,45 @@ class ForamGUI(Frame):
 
 
     def initUI(self):
-        self.parent.title("Pitex - Classifing Forams since 2015")
+        '''
+        Initialize UI
+        :return:
+        '''
+
+        self.parent.title("Pitex")
         self.pack(fill=BOTH, expand=1)
 
         menubar = Menu(self.parent)
         self.parent.config(menu=menubar)
+
         fileMenu = Menu(menubar)
-        self.fn=''
-        fileMenu.add_command(label="Open", command=self.onOpen)
-        menubar.add_cascade(label="File", menu=fileMenu)
+        projectMenu = Menu(menubar)
+
+
+        menubar.add_cascade(label="Project", menu=projectMenu)
+        projectMenu.add_command(label="New Project")
+        projectMenu.add_command(label="open Existing")
+
+        menubar.add_cascade(label="Dataset Manager", menu=fileMenu)
+        fileMenu.add_command(label="New Dataset", command=self.createNewDataset)
+        fileMenu.add_command(label="Open Existing", command=self.onOpen)
+
+
+
+    def createNewDataset(self):
+        class_dir = []
+
+        dir = tkFileDialog.askdirectory(title='Select your pictures folder')
+
+        class_dir.append(dir)
+
+
+
 
     def onOpen(self):
-
-        ftypes = [('Image Files', '*.tif *.jpg *.png')]
-        dlg = tkFileDialog.Open(self, filetypes = ftypes)
-        filename = dlg.show()
-        self.fn=filename
+        dlg = tkFileDialog.askopenfilename(parent=self.parent ,initialdir='/home/',title='Select Dataset', filetypes=[('nps', '.npz')])
+        filename = dlg
+        print filename
         #im = cv2.imread(str(self.fn))
         #cv2.namedWindow("LoadedImage")
         #cv2.imshow("LoadedImage",im)
