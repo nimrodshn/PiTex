@@ -3,7 +3,6 @@ import cv2 as cv
 from componentExtractor import componentExtractor
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
-import matplotlib.pyplot as plt
 
 
 class classifier:
@@ -56,13 +55,6 @@ class classifier:
                 im2 = cv.drawKeypoints(component ,kp,color=(0,255,0), flags=0)
                 cv.namedWindow(labels[res[0]] + " comp " + str(i), cv.WINDOW_NORMAL)
                 cv.imshow(labels[res[0]] + " comp " + str(i), im2)
-
-
-
-
-
-
-
 
 
 

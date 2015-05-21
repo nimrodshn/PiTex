@@ -27,7 +27,6 @@ class dataSetOrginizer:
         :return:
         '''
 
-
         address = "..//data//training//" + name
         labels = []
         trainingData = []

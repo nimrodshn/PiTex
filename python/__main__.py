@@ -17,13 +17,9 @@ def main():
     root.geometry("1280x720")
     root.mainloop()
 
-
     cl = classifier(img)
     cl.classifieSample()
-
-
     cv.waitKey()
-
 
 if __name__ == '__main__':
     main()
