@@ -11,15 +11,7 @@ class datasetOrginizer:
        self._dataSets.append(defaultSet)
 
 
-    def InputDataset(self,name):
-        """
-        Inputs The Images for Training set to be created.
-        :param name:
-        :return:
-        """
-
-
-    def createTrainingFromDataset(self, name, location=''):
+    def createTrainingFromDataset(self, dataset_name, labels_list, path_list):
         '''
         Creates a new training set to work on from given dataset in location: creating Feature Vector, Normalize etc..
         :param name: the name of the data set
@@ -27,23 +19,26 @@ class datasetOrginizer:
         :return:
         '''
 
-        address = "..//data//training//" + name
         labels = []
         trainingData = []
         classes = []
         cl = 0
-        for items in os.listdir(address):
 
-            name = address + "//" + items
-            labels.append(items)
+        for i, path in enumerate(path_list):
+
+            labels.append(labels_list[i])
+            print labels_list[i]
             #print items
 
-            for it in os.listdir(name):
+            for it in os.listdir(path):
 
-                path = name + "//" + it
-                #print path # DEBUG
+                p = path + "//" + it
+                print p # DEBUG
 
-                img = cv.imread(path)
+                img = cv.imread(p)
+                cv.namedWindow(path, cv.WINDOW_NORMAL)
+                cv.imshow(path, img)
+
 
                 orb = cv.ORB()
                 kp = orb.detect(img,None)
@@ -53,12 +48,6 @@ class datasetOrginizer:
                     kp = kp[:15]
                     kp, des = orb.compute(img, kp)
 
-                    '''
-                    ## DEBUG ##
-                    im2 = cv.drawKeypoints(img ,kp,color=(0,255,0), flags=0)
-                    cv.namedWindow(path, cv.WINDOW_NORMAL)
-                    cv.imshow(path, im2)
-                    '''
 
                 ####### Transformations on the Array #######
                     d=des.flatten()
@@ -67,10 +56,10 @@ class datasetOrginizer:
 
             cl = cl + 1
 
-        np.savez(name,trainingData,labels, classes)
+        np.savez(dataset_name,trainingData,labels, classes)
 
 
-    def addImageToTrainingSet(self, InputImage, cl,Trainingset='Data.npz'):
+    def addImageToTrainingSet(self, InputImage, cl, Trainingset='Data.npz'):
         '''
 
         :param InputImage: Image to be added to training set.

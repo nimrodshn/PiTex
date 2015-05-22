@@ -1,9 +1,9 @@
 __author__ = 'nimrodshn'
 from Tkinter import *
+import tkMessageBox
 import tkFileDialog
-import cv2
 import numpy as np
-
+from dataSetOrginizer import datasetOrginizer
 
 class ForamGUI(Frame):
 
@@ -47,19 +47,24 @@ class ForamGUI(Frame):
 
     def DatasetManager(self):
         self.class_to_be_added = {}
-        self.class_path = []
-        self.class_name = []
+        self.class_path_list = []
+        self.class_name_list = []
+        self.class_name_list = []
 
         window = Toplevel(self)
         window.title('DatasetManager')
-        window.geometry("400x400")
+        window.geometry("450x400")
+        window.lift()
 
         ## LABELS ##
 
         header = Label(window, text="Dataset Manager")
-        label1 = Label(window, text='Enter class Name')
+        label2 = Label(window, text='Enter class Name')
+        label1 = Label(window, text='Enter dataset name')
 
         ## ENTRYS ##
+        dataset_name = StringVar()
+        self.dataset_name_entry = Entry(window, textvariable=dataset_name)
 
         class_name = StringVar()
         self.name_entry = Entry(window, textvariable=class_name)
@@ -85,29 +90,53 @@ class ForamGUI(Frame):
 
         commitClassButton = Button(window, text='commit class',command=self.onCommit)
 
-        finishButton = Button(window, text='Finish')
+        finishButton = Button(window, text='Finish',command=self.onFinish)
 
         ## GRID-LAYOUT ##
+
         header.grid(column=5, row=0, columnspan=3,pady=10)
-        label1.grid(column=3,row=4,columnspan=2)
-        self.dir_entry.grid(column=5, row=3, columnspan=3)
-        self.name_entry.grid(column=5, row=4)
-        listframe.grid(column=5,row=5)
-        importButton.grid(column=4, row=3)
-        commitClassButton.grid(column=9, row=4)
-        finishButton.grid(column=5, row=8)
+        label1.grid(column=3,row=5,columnspan=2)
+        label2.grid(column=3,row=7,columnspan=2)
+        self.dataset_name_entry.grid(column=5, row=5, columnspan=3)
+        self.dir_entry.grid(column=5, row=6, columnspan=3)
+        self.name_entry.grid(column=5, row=7)
+        listframe.grid(column=5,row=8)
+        importButton.grid(column=4, row=6)
+        commitClassButton.grid(column=9, row=6)
+        finishButton.grid(column=5, row=10)
 
     def onOpenDir(self):
         dir = tkFileDialog.askdirectory(title='Select your pictures folder')
-        self.class_path.append(dir)
         self.dir_entry.insert(0,dir)
+
 
     def onCommit(self):
         className = self.name_entry.get()
-        
-        self.mylist.insert(0,className)
-        self.name_entry.delete(0,END)
-        self.dir_entry.delete(0,END)
+        dir = self.dir_entry.get()
+        if not className:
+            tkMessageBox.showinfo("Error", "Please Enter Class Name")
+        if not dir:
+            tkMessageBox.showinfo("Error", "Please Choose Image Directory")
+
+        else:
+            
+
+            self.class_path_list.append(dir)
+            self.class_name_list.append(className)
+            self.mylist.insert(0,className)
+
+            self.name_entry.delete(0,END)
+            self.dir_entry.delete(0,END)
+
+
+    def onFinish(self):
+        dataset_name = self.dataset_name_entry.get()
+        if not dataset_name:
+                tkMessageBox.showinfo("Error", "Please Enter dataset name")
+        else:
+            do = datasetOrginizer()
+            do.createTrainingFromDataset(dataset_name,self.class_name_list,self.class_path_list)
+
 
     def OpenExistingDataset(self):
         dlg = tkFileDialog.askopenfilename(parent=self.parent, initialdir='/home/', title='Select Dataset',
@@ -117,5 +146,5 @@ class ForamGUI(Frame):
 
 
     def onError(self):
-        print("Error", "Could not open file")
+        tkMessageBox.showinfo("Error", "Please Choose Image Directory")
 
