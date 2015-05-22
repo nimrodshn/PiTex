@@ -1,4 +1,4 @@
-__author__ = 'user'
+__author__ = 'Nimrod Shneor'
 import cv2 as cv
 from componentExtractor import componentExtractor
 import numpy as np
@@ -6,12 +6,12 @@ from sklearn.neighbors import KNeighborsClassifier
 
 
 class classifier:
+
     def __init__(self, inputImage):
         self._image = inputImage
 
     def classifieSample(self, Dataset='Data.npz'):
         '''
-
         :param Dataset: The dataset used to create the model.
          Main Classifier Function.
         :return:

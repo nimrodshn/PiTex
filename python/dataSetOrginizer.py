@@ -3,7 +3,7 @@ import numpy as np
 import os
 import cv2 as cv
 
-class dataSetOrginizer:
+class datasetOrginizer:
     def __init__(self):
        self._dataSets=[]
 

@@ -46,7 +46,9 @@ class ForamGUI(Frame):
 
 
     def DatasetManager(self):
-        class_dir = {}
+        self.class_to_be_added = {}
+        self.class_path = []
+        self.class_name = []
 
         window = Toplevel(self)
         window.title('DatasetManager')
@@ -60,43 +62,52 @@ class ForamGUI(Frame):
         ## ENTRYS ##
 
         class_name = StringVar()
-        name_entry = Entry(window, textvariable=class_name,text='enter class name')
+        self.name_entry = Entry(window, textvariable=class_name)
 
         dir_string = StringVar()
-        dir_entry = Entry(window, textvariable=dir_string, text='dir path')
+        self.dir_entry = Entry(window, textvariable=dir_string)
 
         ## LIST ##
 
-        scrollbar = Scrollbar(window)
+        listframe = Frame(window, relief=GROOVE)
 
-        mylist = Listbox(window, yscrollcommand = scrollbar.set )
+        scrollbar = Scrollbar(listframe,orient="vertical")
 
-        scrollbar.config( command = mylist.yview )
+        self.mylist = Listbox(listframe, yscrollcommand = scrollbar.set )
+        self.mylist.pack(side=RIGHT)
+
+        scrollbar.pack(side=LEFT,fill=Y)
+        scrollbar.config(command=self.mylist.yview)
 
         ## BUTTONS ##
 
-        importButton = Button(window, text='import folder',command=self.onOpen)
+        importButton = Button(window, text='import folder',command=self.onOpenDir)
 
-        commitClassButton = Button(window, text='commit class')
+        commitClassButton = Button(window, text='commit class',command=self.onCommit)
 
         finishButton = Button(window, text='Finish')
 
-        ## LAYOUT ##
+        ## GRID-LAYOUT ##
         header.grid(column=5, row=0, columnspan=3,pady=10)
         label1.grid(column=3,row=4,columnspan=2)
-        dir_entry.grid(column=5, row=3, columnspan=3)
-        name_entry.grid(column=5, row=4)
-        mylist.grid(column=5,row=5)
+        self.dir_entry.grid(column=5, row=3, columnspan=3)
+        self.name_entry.grid(column=5, row=4)
+        listframe.grid(column=5,row=5)
         importButton.grid(column=4, row=3)
         commitClassButton.grid(column=9, row=4)
         finishButton.grid(column=5, row=8)
 
-
-    def onOpen(self):
+    def onOpenDir(self):
         dir = tkFileDialog.askdirectory(title='Select your pictures folder')
-        print dir
-        return dir
+        self.class_path.append(dir)
+        self.dir_entry.insert(0,dir)
 
+    def onCommit(self):
+        className = self.name_entry.get()
+        
+        self.mylist.insert(0,className)
+        self.name_entry.delete(0,END)
+        self.dir_entry.delete(0,END)
 
     def OpenExistingDataset(self):
         dlg = tkFileDialog.askopenfilename(parent=self.parent, initialdir='/home/', title='Select Dataset',
