@@ -28,25 +28,26 @@ class datasetOrginizer:
 
             labels.append(labels_list[i])
             print labels_list[i]
-            #print items
+
 
             for it in os.listdir(path):
 
-                p = path + "//" + it
+                p = path + "/" + it
                 print p # DEBUG
 
-                img = cv.imread(p)
-                cv.namedWindow(path, cv.WINDOW_NORMAL)
-                cv.imshow(path, img)
-
+                im = cv.imread(p)
+                '''
+                cv.namedWindow(it, cv.WINDOW_NORMAL)
+                cv.imshow(it, im)
+                '''
 
                 orb = cv.ORB()
-                kp = orb.detect(img,None)
+                kp = orb.detect(im,None)
 
                 ## Normalize the Data, taking only Data with 50 KeyPoints
                 if len(kp) > 15:
                     kp = kp[:15]
-                    kp, des = orb.compute(img, kp)
+                    kp, des = orb.compute(im, kp)
 
 
                 ####### Transformations on the Array #######

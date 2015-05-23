@@ -2,7 +2,8 @@ __author__ = 'nimrodshn'
 from Tkinter import *
 import tkMessageBox
 import tkFileDialog
-import numpy as np
+import PIL.Image
+import cv2
 from dataSetOrginizer import datasetOrginizer
 
 class ForamGUI(Frame):
@@ -44,6 +45,42 @@ class ForamGUI(Frame):
         helpMenu.add_command(label="Contents")
         helpMenu.add_command(label="About")
 
+        ## Main Sample View ##
+        self.mainViewFrame = Canvas(self,width=500,height=500)
+
+
+        ## DatasetList ##
+        self.datasetlistframe = Frame(self,relief=GROOVE)
+
+        datasetlbl = Label(self.datasetlistframe, text='Dataset List')
+        datasetlbl.pack(side=TOP)
+
+        scrollbar = Scrollbar(self.datasetlistframe,orient="vertical")
+
+        self.mydatsetlist = Listbox(self.datasetlistframe, yscrollcommand = scrollbar.set )
+        self.mydatsetlist.pack(side=RIGHT)
+
+        scrollbar.pack(side=LEFT,fill=Y)
+        scrollbar.config(command=self.mydatsetlist.yview)
+
+        ## LAYOUT ##
+        self.datasetlistframe.grid(column=1,row=0)
+        self.mainViewFrame.grid(column=2,row=0, rowspan=10)
+
+    def update_image(self,image_label, cv_capture):
+        cv_image = cv_capture.read()[1]
+        cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
+        pil_image = Image.fromarray(cv_image)
+        tk_image = PhotoImage(image=pil_image)
+        image_label.configure(image=tk_image)
+        image_label._image_cache = tk_image  # avoid garbage collection
+
+    def update_all(self, image_label, cv_capture):
+        if self.parent.quit_flag:
+            self.parent.destroy()  # this avoids the update event being in limbo
+        else:
+            self.update_image(image_label, cv_capture)
+            self.parent.after(10, func=lambda: self.update_all(self, image_label, cv_capture))
 
     def DatasetManager(self):
         self.class_to_be_added = {}
@@ -111,7 +148,7 @@ class ForamGUI(Frame):
 
 
     def onCommit(self):
-        className = self.name_entry.get()
+        className = str(self.name_entry.get())
         dir = self.dir_entry.get()
         if not className:
             tkMessageBox.showinfo("Error", "Please Enter Class Name")
@@ -119,10 +156,15 @@ class ForamGUI(Frame):
             tkMessageBox.showinfo("Error", "Please Choose Image Directory")
 
         else:
-            
-
-            self.class_path_list.append(dir)
-            self.class_name_list.append(className)
+            '''
+            d = [m.start() for m in re.finditer("/",dir)]
+            c=1
+            for i in d:
+                dir = dir[:i+c] + '/'+ dir[i+c:]
+                c=c+1
+            '''
+            self.class_path_list.append(str(dir))
+            self.class_name_list.append(str(className))
             self.mylist.insert(0,className)
 
             self.name_entry.delete(0,END)
