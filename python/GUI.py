@@ -2,10 +2,26 @@ __author__ = 'nimrodshn'
 from Tkinter import *
 import tkMessageBox
 import tkFileDialog
-from multiprocessing import Process, Queue
-from PIL import *
+import PIL
 import cv2
 from dataSetOrginizer import datasetOrginizer
+
+
+class vid():
+    def __init__(self,cam,root,canvas):
+        self.cam = cam
+        self.root = root
+        self.canvas = canvas
+
+    def update_video(self,cam,root,canvas):
+        (readsuccessful,f) = cam.read()
+        gray_im = cv2.cvtColor(f, cv2.COLOR_RGB2GRAY)
+        a = Image.fromarray(gray_im)
+        b = PhotoImage(image=a)
+        canvas.create_image(0,0,image=b,anchor=NW)
+        root.update()
+        root.after(33,self.supdate_video(self,cam,root,canvas))
+
 
 class ForamGUI(Frame):
 
@@ -46,11 +62,6 @@ class ForamGUI(Frame):
         helpMenu.add_command(label="Contents")
         helpMenu.add_command(label="About")
 
-        ## Main Sample View ##
-        self.mainViewFrame = Frame(self.parent,width=700,height=700)
-        inputlbl = Label(self.parent, text='Input Sample')
-        w = Canvas(self.mainViewFrame, width=700,height=700)
-        w.create_rectangle(700,600,10,10,outline='black')
 
         ## CONTROL PANEL ##
         controlFrame = Frame(self.parent,relief=GROOVE, width = 100)
@@ -59,7 +70,6 @@ class ForamGUI(Frame):
         self.pausephoto=PhotoImage(file="../icons/pause.gif")
         self.playphoto=PhotoImage(file='../icons/play.gif')
         self.recordphoto=PhotoImage(file="../icons/record.gif")
-
 
         recordbtn = Button(controlFrame,image=self.recordphoto,width=60,height=60)
         playbtn = Button(controlFrame,image=self.playphoto,width=60,height=60)
@@ -72,6 +82,7 @@ class ForamGUI(Frame):
         stopbtn.pack(side=RIGHT)
 
         ## Workspace DatasetList ##
+
         self.datasetlistframe = Frame(self.parent,relief=GROOVE)
 
         datasetlbl = Label(self.datasetlistframe, text='Current Working Datasets')
@@ -87,8 +98,12 @@ class ForamGUI(Frame):
 
         self.mydatsetlist.insert(0,'Default Dataset')
 
+        ## Main Sample View ##
+        self.mainViewFrame = LabelFrame(self.parent,width=800,height=600,text='Input Sample')
+        w = Canvas(self.mainViewFrame, width=800,height=600)
+
+
         ## LAYOUT ##
-        inputlbl.grid(column=0,row=0)
         self.mainViewFrame.grid(column=0,row=1, rowspan=10, padx=20 )
         w.grid(column=0,row=1)
 
@@ -96,7 +111,9 @@ class ForamGUI(Frame):
         self.datasetlistframe.grid(column=20,row=2, columnspan=10)
 
 
-    ## DATASET MANAGER ##
+
+
+    ## DATASET MANAGER GUI ##
 
     def DatasetManager(self):
         self.class_to_be_added = {}
@@ -158,38 +175,6 @@ class ForamGUI(Frame):
         importButton.grid(column=4, row=6)
         commitClassButton.grid(column=9, row=6)
         finishButton.grid(column=5, row=10)
-
-    ### Main View Frame ###
-    def image_capture(self,queue):
-        vidFile = cv2.VideoCapture(0)
-        while True:
-            flag, frame=vidFile.read()
-            frame = cv2.cvtColor(frame,cv2.cv.CV_BGR2RGB)
-            queue.put(frame)
-            cv2.waitKey(10)
-
-    def update_all(self, imagelabel, queue, process, var):
-        if var.get()==True:
-            global im
-            im = queue.get()
-            a = Image.fromarray(im)
-            b = PhotoImage(image=a)
-            imagelabel.configure(image=b)
-            imagelabel._image_cache = b
-            self.parent.update()
-            self.parent.after(0, func=lambda: self.update_all(self, imagelabel, queue, process, var))
-        else:
-            print var.get()
-            self.parent.quit()
-
-    def playvideo(self, imagelabel, queue, var):
-
-        global im
-        p = Process(target=self.image_capture)
-        p.start()
-        self.update_all(imagelabel, queue, p, var)
-
-
 
     ### DATASET FUNCTIONS ###
 
