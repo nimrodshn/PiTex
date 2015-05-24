@@ -2,7 +2,8 @@ __author__ = 'nimrodshn'
 from Tkinter import *
 import tkMessageBox
 import tkFileDialog
-import PIL.Image
+from multiprocessing import Process, Queue
+from PIL import *
 import cv2
 from dataSetOrginizer import datasetOrginizer
 
@@ -21,8 +22,8 @@ class ForamGUI(Frame):
         '''
 
         self.parent.title("PiTex 0.1 BETA")
-        self.pack(fill=BOTH, expand=1)
 
+        ## Menu Bar ##
         menubar = Menu(self.parent)
         self.parent.config(menu=menubar)
 
@@ -46,41 +47,56 @@ class ForamGUI(Frame):
         helpMenu.add_command(label="About")
 
         ## Main Sample View ##
-        self.mainViewFrame = Canvas(self,width=500,height=500)
+        self.mainViewFrame = Frame(self.parent,width=700,height=700)
+        inputlbl = Label(self.parent, text='Input Sample')
+        w = Canvas(self.mainViewFrame, width=700,height=700)
+        w.create_rectangle(700,600,10,10,outline='black')
+
+        ## CONTROL PANEL ##
+        controlFrame = Frame(self.parent,relief=GROOVE, width = 100)
+
+        self.stopphoto = PhotoImage(file="../icons/stop.gif")
+        self.pausephoto=PhotoImage(file="../icons/pause.gif")
+        self.playphoto=PhotoImage(file='../icons/play.gif')
+        self.recordphoto=PhotoImage(file="../icons/record.gif")
 
 
-        ## DatasetList ##
-        self.datasetlistframe = Frame(self,relief=GROOVE)
+        recordbtn = Button(controlFrame,image=self.recordphoto,width=60,height=60)
+        playbtn = Button(controlFrame,image=self.playphoto,width=60,height=60)
+        pausebtn = Button(controlFrame,image=self.pausephoto,width=60,height=60)
+        stopbtn = Button(controlFrame,image=self.stopphoto,width=60,height=60)
 
-        datasetlbl = Label(self.datasetlistframe, text='Dataset List')
+        recordbtn.pack(side=LEFT)
+        playbtn.pack(side=LEFT)
+        pausebtn.pack(side=LEFT)
+        stopbtn.pack(side=RIGHT)
+
+        ## Workspace DatasetList ##
+        self.datasetlistframe = Frame(self.parent,relief=GROOVE)
+
+        datasetlbl = Label(self.datasetlistframe, text='Current Working Datasets')
         datasetlbl.pack(side=TOP)
 
         scrollbar = Scrollbar(self.datasetlistframe,orient="vertical")
 
-        self.mydatsetlist = Listbox(self.datasetlistframe, yscrollcommand = scrollbar.set )
+        self.mydatsetlist = Listbox(self.datasetlistframe, yscrollcommand = scrollbar.set, width=30, height=20 )
         self.mydatsetlist.pack(side=RIGHT)
 
         scrollbar.pack(side=LEFT,fill=Y)
         scrollbar.config(command=self.mydatsetlist.yview)
 
+        self.mydatsetlist.insert(0,'Default Dataset')
+
         ## LAYOUT ##
-        self.datasetlistframe.grid(column=1,row=0)
-        self.mainViewFrame.grid(column=2,row=0, rowspan=10)
+        inputlbl.grid(column=0,row=0)
+        self.mainViewFrame.grid(column=0,row=1, rowspan=10, padx=20 )
+        w.grid(column=0,row=1)
 
-    def update_image(self,image_label, cv_capture):
-        cv_image = cv_capture.read()[1]
-        cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
-        pil_image = Image.fromarray(cv_image)
-        tk_image = PhotoImage(image=pil_image)
-        image_label.configure(image=tk_image)
-        image_label._image_cache = tk_image  # avoid garbage collection
+        controlFrame.grid(column=20,row=1)
+        self.datasetlistframe.grid(column=20,row=2, columnspan=10)
 
-    def update_all(self, image_label, cv_capture):
-        if self.parent.quit_flag:
-            self.parent.destroy()  # this avoids the update event being in limbo
-        else:
-            self.update_image(image_label, cv_capture)
-            self.parent.after(10, func=lambda: self.update_all(self, image_label, cv_capture))
+
+    ## DATASET MANAGER ##
 
     def DatasetManager(self):
         self.class_to_be_added = {}
@@ -88,30 +104,31 @@ class ForamGUI(Frame):
         self.class_name_list = []
         self.class_name_list = []
 
-        window = Toplevel(self)
-        window.title('DatasetManager')
-        window.geometry("450x400")
-        window.lift()
+        self.window = Toplevel(self.parent)
+        self.window.title('DatasetManager')
+        self.window.geometry("450x400")
+        self.window.lift(self.parent)
 
         ## LABELS ##
 
-        header = Label(window, text="Dataset Manager")
-        label2 = Label(window, text='Enter class Name')
-        label1 = Label(window, text='Enter dataset name')
+        header = Label(self.window, text="Dataset Manager")
+        label2 = Label(self.window, text='Enter class Name')
+        label1 = Label(self.window, text='Enter dataset name')
 
         ## ENTRYS ##
+
         dataset_name = StringVar()
-        self.dataset_name_entry = Entry(window, textvariable=dataset_name)
+        self.dataset_name_entry = Entry(self.window, textvariable=dataset_name)
 
         class_name = StringVar()
-        self.name_entry = Entry(window, textvariable=class_name)
+        self.name_entry = Entry(self.window, textvariable=class_name)
 
         dir_string = StringVar()
-        self.dir_entry = Entry(window, textvariable=dir_string)
+        self.dir_entry = Entry(self.window, textvariable=dir_string)
 
         ## LIST ##
 
-        listframe = Frame(window, relief=GROOVE)
+        listframe = Frame(self.window, relief=GROOVE)
 
         scrollbar = Scrollbar(listframe,orient="vertical")
 
@@ -123,11 +140,11 @@ class ForamGUI(Frame):
 
         ## BUTTONS ##
 
-        importButton = Button(window, text='import folder',command=self.onOpenDir)
+        importButton = Button(self.window, text='import folder',command=self.onOpenDir)
 
-        commitClassButton = Button(window, text='commit class',command=self.onCommit)
+        commitClassButton = Button(self.window, text='commit class',command=self.onCommit)
 
-        finishButton = Button(window, text='Finish',command=self.onFinish)
+        finishButton = Button(self.window, text='Finish',command=self.onFinish)
 
         ## GRID-LAYOUT ##
 
@@ -141,6 +158,40 @@ class ForamGUI(Frame):
         importButton.grid(column=4, row=6)
         commitClassButton.grid(column=9, row=6)
         finishButton.grid(column=5, row=10)
+
+    ### Main View Frame ###
+    def image_capture(self,queue):
+        vidFile = cv2.VideoCapture(0)
+        while True:
+            flag, frame=vidFile.read()
+            frame = cv2.cvtColor(frame,cv2.cv.CV_BGR2RGB)
+            queue.put(frame)
+            cv2.waitKey(10)
+
+    def update_all(self, imagelabel, queue, process, var):
+        if var.get()==True:
+            global im
+            im = queue.get()
+            a = Image.fromarray(im)
+            b = PhotoImage(image=a)
+            imagelabel.configure(image=b)
+            imagelabel._image_cache = b
+            self.parent.update()
+            self.parent.after(0, func=lambda: self.update_all(self, imagelabel, queue, process, var))
+        else:
+            print var.get()
+            self.parent.quit()
+
+    def playvideo(self, imagelabel, queue, var):
+
+        global im
+        p = Process(target=self.image_capture)
+        p.start()
+        self.update_all(imagelabel, queue, p, var)
+
+
+
+    ### DATASET FUNCTIONS ###
 
     def onOpenDir(self):
         dir = tkFileDialog.askdirectory(title='Select your pictures folder')
@@ -156,13 +207,6 @@ class ForamGUI(Frame):
             tkMessageBox.showinfo("Error", "Please Choose Image Directory")
 
         else:
-            '''
-            d = [m.start() for m in re.finditer("/",dir)]
-            c=1
-            for i in d:
-                dir = dir[:i+c] + '/'+ dir[i+c:]
-                c=c+1
-            '''
             self.class_path_list.append(str(dir))
             self.class_name_list.append(str(className))
             self.mylist.insert(0,className)
@@ -178,6 +222,8 @@ class ForamGUI(Frame):
         else:
             do = datasetOrginizer()
             do.createTrainingFromDataset(dataset_name,self.class_name_list,self.class_path_list)
+            self.mydatsetlist.insert(0,dataset_name)
+            self.window.destroy()
 
 
     def OpenExistingDataset(self):
