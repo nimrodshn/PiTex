@@ -6,6 +6,8 @@ from GUI import ForamGUI
 
 __author__ = 'Nimrod Shneor'
 
+
+
 def main():
 
 
@@ -14,7 +16,6 @@ def main():
     cv.namedWindow("Sample",cv.WINDOW_NORMAL)
     cv.imshow("Sample",img)
     '''
-
     root = Tk()
     ForamGUI(root)
     root.attributes('-zoomed', True)

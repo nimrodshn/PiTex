@@ -1,32 +1,18 @@
 __author__ = 'nimrodshn'
-from Tkinter import *
+import Tkinter as tk
 import tkMessageBox
 import tkFileDialog
-import PIL
+from PIL import Image, ImageTk
 import cv2
+import time
+from collections import deque
 from dataSetOrginizer import datasetOrginizer
 
 
-class vid():
-    def __init__(self,cam,root,canvas):
-        self.cam = cam
-        self.root = root
-        self.canvas = canvas
-
-    def update_video(self,cam,root,canvas):
-        (readsuccessful,f) = cam.read()
-        gray_im = cv2.cvtColor(f, cv2.COLOR_RGB2GRAY)
-        a = Image.fromarray(gray_im)
-        b = PhotoImage(image=a)
-        canvas.create_image(0,0,image=b,anchor=NW)
-        root.update()
-        root.after(33,self.supdate_video(self,cam,root,canvas))
-
-
-class ForamGUI(Frame):
+class ForamGUI(tk.Frame):
 
     def __init__(self, parent):
-        Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent)
         self.parent = parent
         self.initUI()
 
@@ -40,12 +26,12 @@ class ForamGUI(Frame):
         self.parent.title("PiTex 0.1 BETA")
 
         ## Menu Bar ##
-        menubar = Menu(self.parent)
+        menubar = tk.Menu(self.parent)
         self.parent.config(menu=menubar)
 
-        datasetMenu = Menu(menubar)
-        projectMenu = Menu(menubar)
-        helpMenu = Menu(menubar)
+        datasetMenu = tk.Menu(menubar)
+        projectMenu = tk.Menu(menubar)
+        helpMenu = tk.Menu(menubar)
 
         menubar.add_cascade(label="Project", menu=projectMenu)
         projectMenu.add_command(label="New Project")
@@ -64,53 +50,74 @@ class ForamGUI(Frame):
 
 
         ## CONTROL PANEL ##
-        controlFrame = Frame(self.parent,relief=GROOVE, width = 100)
+        controlFrame = tk.Frame(self.parent,relief=tk.GROOVE, width = 100)
 
-        self.stopphoto = PhotoImage(file="../icons/stop.gif")
-        self.pausephoto=PhotoImage(file="../icons/pause.gif")
-        self.playphoto=PhotoImage(file='../icons/play.gif')
-        self.recordphoto=PhotoImage(file="../icons/record.gif")
+        self.stopphoto = tk.PhotoImage(file="../icons/stop.gif")
+        self.pausephoto=tk.PhotoImage(file="../icons/pause.gif")
+        self.playphoto=tk.PhotoImage(file='../icons/play.gif')
+        self.recordphoto=tk.PhotoImage(file="../icons/record.gif")
 
-        recordbtn = Button(controlFrame,image=self.recordphoto,width=60,height=60)
-        playbtn = Button(controlFrame,image=self.playphoto,width=60,height=60)
-        pausebtn = Button(controlFrame,image=self.pausephoto,width=60,height=60)
-        stopbtn = Button(controlFrame,image=self.stopphoto,width=60,height=60)
+        recordbtn = tk.Button(controlFrame,image=self.recordphoto,width=60,height=60)
+        playbtn = tk.Button(controlFrame,image=self.playphoto,width=60,height=60)
+        pausebtn = tk.Button(controlFrame,image=self.pausephoto,width=60,height=60)
+        stopbtn = tk.Button(controlFrame,image=self.stopphoto,width=60,height=60)
 
-        recordbtn.pack(side=LEFT)
-        playbtn.pack(side=LEFT)
-        pausebtn.pack(side=LEFT)
-        stopbtn.pack(side=RIGHT)
+        recordbtn.pack(side=tk.LEFT)
+        playbtn.pack(side=tk.LEFT)
+        pausebtn.pack(side=tk.LEFT)
+        stopbtn.pack(side=tk.RIGHT)
 
-        ## Workspace DatasetList ##
+        ## Current Working DatasetList ##
 
-        self.datasetlistframe = Frame(self.parent,relief=GROOVE)
+        self.datasetlistframe = tk.Frame(self.parent,relief=tk.GROOVE)
 
-        datasetlbl = Label(self.datasetlistframe, text='Current Working Datasets')
-        datasetlbl.pack(side=TOP)
+        datasetlbl = tk.Label(self.datasetlistframe, text='Current Working Datasets')
+        datasetlbl.pack(side=tk.TOP)
 
-        scrollbar = Scrollbar(self.datasetlistframe,orient="vertical")
+        scrollbar = tk.Scrollbar(self.datasetlistframe,orient="vertical")
 
-        self.mydatsetlist = Listbox(self.datasetlistframe, yscrollcommand = scrollbar.set, width=30, height=20 )
-        self.mydatsetlist.pack(side=RIGHT)
+        self.mydatsetlist = tk.Listbox(self.datasetlistframe, yscrollcommand = scrollbar.set, width=30, height=20 )
+        self.mydatsetlist.pack(side=tk.RIGHT)
 
-        scrollbar.pack(side=LEFT,fill=Y)
+        scrollbar.pack(side=tk.LEFT,fill=tk.Y)
         scrollbar.config(command=self.mydatsetlist.yview)
 
         self.mydatsetlist.insert(0,'Default Dataset')
 
         ## Main Sample View ##
-        self.mainViewFrame = LabelFrame(self.parent,width=800,height=600,text='Input Sample')
-        w = Canvas(self.mainViewFrame, width=800,height=600)
+        self.mainViewFrame = tk.LabelFrame(self.parent,width=800,height=600,text='Input Sample')
+        self.image_label = tk.Label(master=self.mainViewFrame)
+        self.image_label.pack()
 
+        cam = cv2.VideoCapture(0)
 
-        ## LAYOUT ##
+        quit_button = tk.Button(master=self.mainViewFrame, text='Quit',command=lambda: self.quit_(self.parent))
+        quit_button.pack()
+
+        # setup the update callback
+        self.parent.after(0, func=lambda: self.update_all(self.parent, self.image_label, cam))
+
+        ## LAYOUT Main GUI ##
         self.mainViewFrame.grid(column=0,row=1, rowspan=10, padx=20 )
-        w.grid(column=0,row=1)
-
         controlFrame.grid(column=20,row=1)
         self.datasetlistframe.grid(column=20,row=2, columnspan=10)
 
 
+    def quit_(self,root):
+        root.destroy()
+
+    def update_image(self,root,image_label, cam):
+        (readsuccessful, f) = cam.read()
+        im = cv2.cvtColor(f, cv2.COLOR_BGR2RGB)
+        a = Image.fromarray(im)
+        b = ImageTk.PhotoImage(image=a)
+        image_label.configure(image=b)
+        image_label._image_cache = b  # avoid garbage collection
+        root.update()
+
+    def update_all(self,root, image_label, cam):
+        self.update_image(root,image_label, cam)
+        root.after(20, func=lambda: self.update_all(root, image_label, cam))
 
 
     ## DATASET MANAGER GUI ##
@@ -121,47 +128,47 @@ class ForamGUI(Frame):
         self.class_name_list = []
         self.class_name_list = []
 
-        self.window = Toplevel(self.parent)
+        self.window = tk.Toplevel(self.parent)
         self.window.title('DatasetManager')
         self.window.geometry("450x400")
         self.window.lift(self.parent)
 
         ## LABELS ##
 
-        header = Label(self.window, text="Dataset Manager")
-        label2 = Label(self.window, text='Enter class Name')
-        label1 = Label(self.window, text='Enter dataset name')
+        header = tk.Label(self.window, text="Dataset Manager")
+        label2 = tk.Label(self.window, text='Enter class Name')
+        label1 = tk.Label(self.window, text='Enter dataset name')
 
         ## ENTRYS ##
 
-        dataset_name = StringVar()
-        self.dataset_name_entry = Entry(self.window, textvariable=dataset_name)
+        dataset_name = tk.StringVar()
+        self.dataset_name_entry = tk.Entry(self.window, textvariable=dataset_name)
 
-        class_name = StringVar()
-        self.name_entry = Entry(self.window, textvariable=class_name)
+        class_name = tk.StringVar()
+        self.name_entry = tk.Entry(self.window, textvariable=class_name)
 
-        dir_string = StringVar()
-        self.dir_entry = Entry(self.window, textvariable=dir_string)
+        dir_string = tk.StringVar()
+        self.dir_entry = tk.Entry(self.window, textvariable=dir_string)
 
         ## LIST ##
 
-        listframe = Frame(self.window, relief=GROOVE)
+        listframe = tk.Frame(self.window, relief=tk.GROOVE)
 
-        scrollbar = Scrollbar(listframe,orient="vertical")
+        scrollbar = tk.Scrollbar(listframe,orient="vertical")
 
-        self.mylist = Listbox(listframe, yscrollcommand = scrollbar.set )
-        self.mylist.pack(side=RIGHT)
+        self.mylist = tk.Listbox(listframe, yscrollcommand = scrollbar.set )
+        self.mylist.pack(side=tk.RIGHT)
 
-        scrollbar.pack(side=LEFT,fill=Y)
+        scrollbar.pack(side=tk.LEFT,fill=tk.Y)
         scrollbar.config(command=self.mylist.yview)
 
         ## BUTTONS ##
 
-        importButton = Button(self.window, text='import folder',command=self.onOpenDir)
+        importButton = tk.Button(self.window, text='import folder',command=self.onOpenDir)
 
-        commitClassButton = Button(self.window, text='commit class',command=self.onCommit)
+        commitClassButton = tk.Button(self.window, text='commit class',command=self.onCommit)
 
-        finishButton = Button(self.window, text='Finish',command=self.onFinish)
+        finishButton = tk.Button(self.window, text='Finish',command=self.onFinish)
 
         ## GRID-LAYOUT ##
 
@@ -196,8 +203,8 @@ class ForamGUI(Frame):
             self.class_name_list.append(str(className))
             self.mylist.insert(0,className)
 
-            self.name_entry.delete(0,END)
-            self.dir_entry.delete(0,END)
+            self.name_entry.delete(0,tk.END)
+            self.dir_entry.delete(0,tk.END)
 
 
     def onFinish(self):
