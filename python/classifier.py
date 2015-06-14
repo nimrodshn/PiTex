@@ -10,7 +10,7 @@ class classifier:
     def __init__(self, inputImage):
         self._image = inputImage
 
-    def classifieSample(self, Dataset='Data.npz'):
+    def classifieSample(self, Dataset='binData/Default.npz'):
         '''
         :param Dataset: The dataset used to create the model.
          Main Classifier Function.
@@ -39,7 +39,6 @@ class classifier:
             #cv.namedWindow(str(i), cv.WINDOW_NORMAL)
             #cv.imshow(str(i), component)
 
-
             orb = cv.ORB()
             kp = orb.detect(component,None)
 
@@ -55,7 +54,3 @@ class classifier:
                 im2 = cv.drawKeypoints(component ,kp,color=(0,255,0), flags=0)
                 cv.namedWindow(labels[res[0]] + " comp " + str(i), cv.WINDOW_NORMAL)
                 cv.imshow(labels[res[0]] + " comp " + str(i), im2)
-
-
-
-

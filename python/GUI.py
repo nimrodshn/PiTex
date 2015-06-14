@@ -1,13 +1,10 @@
 __author__ = 'nimrodshn'
 import Tkinter as tk
 import tkMessageBox
-import tkFileDialog
 from PIL import Image, ImageTk
 import cv2
-import time
-from collections import deque
-from dataSetOrginizer import datasetOrginizer
-
+from classifier import classifier
+from DatasetManagerGUI import DatasetManagerGUI
 
 class ForamGUI(tk.Frame):
 
@@ -15,7 +12,7 @@ class ForamGUI(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.parent = parent
         self.initUI()
-
+        
 
     def initUI(self):
         '''
@@ -23,11 +20,24 @@ class ForamGUI(tk.Frame):
         :return:
         '''
 
-        self.parent.title("PiTex 0.1 BETA")
+        self.parent.title("PiTex 0.1 Alpha")
 
         ## Menu Bar ##
+        
         menubar = tk.Menu(self.parent)
         self.parent.config(menu=menubar)
+        self.current_frame = None
+        self.class_name_list = None
+        self.class_path_list = None
+        self.current_frame = None
+        self.class_to_be_added = None
+        self.mainViewFrame = None
+        self.pausephoto = None
+        self.playphoto = None
+        self.recordphoto = None
+        self.stopphoto = None
+
+        self.dsManagerGUI = DatasetManagerGUI(self)
 
         datasetMenu = tk.Menu(menubar)
         projectMenu = tk.Menu(menubar)
@@ -41,8 +51,8 @@ class ForamGUI(tk.Frame):
         projectMenu.add_command(label="Exit")
 
         menubar.add_cascade(label="Dataset Manager", menu=datasetMenu)
-        datasetMenu.add_command(label="New Dataset", command=self.DatasetManager)
-        datasetMenu.add_command(label="Open Existing", command=self.OpenExistingDataset)
+        datasetMenu.add_command(label="New Dataset", command=self.dsManagerGUI.initUI)
+        datasetMenu.add_command(label="Open Existing", command=self.dsManagerGUI.OpenExistingDataset)
 
         menubar.add_cascade(label="Help", menu=helpMenu)
         helpMenu.add_command(label="Contents")
@@ -50,6 +60,7 @@ class ForamGUI(tk.Frame):
 
 
         ## CONTROL PANEL ##
+
         controlFrame = tk.Frame(self.parent,relief=tk.GROOVE, width = 100)
 
         self.stopphoto = tk.PhotoImage(file="../icons/stop.gif")
@@ -59,7 +70,7 @@ class ForamGUI(tk.Frame):
 
         recordbtn = tk.Button(controlFrame,image=self.recordphoto,width=60,height=60)
         playbtn = tk.Button(controlFrame,image=self.playphoto,width=60,height=60)
-        pausebtn = tk.Button(controlFrame,image=self.pausephoto,width=60,height=60)
+        pausebtn = tk.Button(controlFrame,image=self.pausephoto,width=60,height=60,command=self.captureFrameforAnalysis)
         stopbtn = tk.Button(controlFrame,image=self.stopphoto,width=60,height=60)
 
         recordbtn.pack(side=tk.LEFT)
@@ -76,155 +87,61 @@ class ForamGUI(tk.Frame):
 
         scrollbar = tk.Scrollbar(self.datasetlistframe,orient="vertical")
 
-        self.mydatsetlist = tk.Listbox(self.datasetlistframe, yscrollcommand = scrollbar.set, width=30, height=20 )
-        self.mydatsetlist.pack(side=tk.RIGHT)
+        self.mydatasetlist = tk.Listbox(self.datasetlistframe, yscrollcommand = scrollbar.set, width=30, height=20 )
+        self.mydatasetlist.pack(side=tk.RIGHT)
 
         scrollbar.pack(side=tk.LEFT,fill=tk.Y)
-        scrollbar.config(command=self.mydatsetlist.yview)
+        scrollbar.config(command=self.mydatasetlist.yview)
 
-        self.mydatsetlist.insert(0,'Default Dataset')
+        self.mydatasetlist.insert(0,'Default')
 
         ## Main Sample View ##
         self.mainViewFrame = tk.LabelFrame(self.parent,width=800,height=600,text='Input Sample')
         self.image_label = tk.Label(master=self.mainViewFrame)
         self.image_label.pack()
 
-        cam = cv2.VideoCapture(0)
+        self.cam = cv2.VideoCapture(0) # Camera
 
         quit_button = tk.Button(master=self.mainViewFrame, text='Quit',command=lambda: self.quit_(self.parent))
         quit_button.pack()
 
         # setup the update callback
-        self.parent.after(0, func=lambda: self.update_all(self.parent, self.image_label, cam))
+        self.parent.after(0, func=lambda: self.update_all(self.parent, self.image_label, self.cam))
 
-        ## LAYOUT Main GUI ##
+        ## Main GUI LAYOUT ##
         self.mainViewFrame.grid(column=0,row=1, rowspan=10, padx=20 )
         controlFrame.grid(column=20,row=1)
         self.datasetlistframe.grid(column=20,row=2, columnspan=10)
 
+    ### Camera Feed Functions ###
 
     def quit_(self,root):
+        self.cam.release()
         root.destroy()
 
     def update_image(self,root,image_label, cam):
-        (readsuccessful, f) = cam.read()
-        im = cv2.cvtColor(f, cv2.COLOR_BGR2RGB)
-        a = Image.fromarray(im)
-        b = ImageTk.PhotoImage(image=a)
-        image_label.configure(image=b)
-        image_label._image_cache = b  # avoid garbage collection
-        root.update()
+        (readsuccessful, f) = self.cam.read()
+        if readsuccessful:
+            self.current_frame = cv2.cvtColor(f, cv2.COLOR_BGR2RGB)
+            a = Image.fromarray(self.current_frame)
+            b = ImageTk.PhotoImage(image=a)
+            image_label.configure(image=b)
+            image_label._image_cache = b  # avoid garbage collection
+            root.update()
+        else: tkMessageBox("Camera Not Connected")
 
     def update_all(self,root, image_label, cam):
         self.update_image(root,image_label, cam)
         root.after(20, func=lambda: self.update_all(root, image_label, cam))
 
-
-    ## DATASET MANAGER GUI ##
-
-    def DatasetManager(self):
-        self.class_to_be_added = {}
-        self.class_path_list = []
-        self.class_name_list = []
-        self.class_name_list = []
-
-        self.window = tk.Toplevel(self.parent)
-        self.window.title('DatasetManager')
-        self.window.geometry("450x400")
-        self.window.lift(self.parent)
-
-        ## LABELS ##
-
-        header = tk.Label(self.window, text="Dataset Manager")
-        label2 = tk.Label(self.window, text='Enter class Name')
-        label1 = tk.Label(self.window, text='Enter dataset name')
-
-        ## ENTRYS ##
-
-        dataset_name = tk.StringVar()
-        self.dataset_name_entry = tk.Entry(self.window, textvariable=dataset_name)
-
-        class_name = tk.StringVar()
-        self.name_entry = tk.Entry(self.window, textvariable=class_name)
-
-        dir_string = tk.StringVar()
-        self.dir_entry = tk.Entry(self.window, textvariable=dir_string)
-
-        ## LIST ##
-
-        listframe = tk.Frame(self.window, relief=tk.GROOVE)
-
-        scrollbar = tk.Scrollbar(listframe,orient="vertical")
-
-        self.mylist = tk.Listbox(listframe, yscrollcommand = scrollbar.set )
-        self.mylist.pack(side=tk.RIGHT)
-
-        scrollbar.pack(side=tk.LEFT,fill=tk.Y)
-        scrollbar.config(command=self.mylist.yview)
-
-        ## BUTTONS ##
-
-        importButton = tk.Button(self.window, text='import folder',command=self.onOpenDir)
-
-        commitClassButton = tk.Button(self.window, text='commit class',command=self.onCommit)
-
-        finishButton = tk.Button(self.window, text='Finish',command=self.onFinish)
-
-        ## GRID-LAYOUT ##
-
-        header.grid(column=5, row=0, columnspan=3,pady=10)
-        label1.grid(column=3,row=5,columnspan=2)
-        label2.grid(column=3,row=7,columnspan=2)
-        self.dataset_name_entry.grid(column=5, row=5, columnspan=3)
-        self.dir_entry.grid(column=5, row=6, columnspan=3)
-        self.name_entry.grid(column=5, row=7)
-        listframe.grid(column=5,row=8)
-        importButton.grid(column=4, row=6)
-        commitClassButton.grid(column=9, row=6)
-        finishButton.grid(column=5, row=10)
-
-    ### DATASET FUNCTIONS ###
-
-    def onOpenDir(self):
-        dir = tkFileDialog.askdirectory(title='Select your pictures folder')
-        self.dir_entry.insert(0,dir)
+    def captureFrameforAnalysis(self):
+        datasetName = self.mydatasetlist.get(self.mydatasetlist.curselection())
+        dataset_path = "binData/"+datasetName+".npz"
+        print dataset_path
+        img = self.current_frame
+        cl = classifier(img)
+        cl.classifieSample(dataset_path)
 
 
-    def onCommit(self):
-        className = str(self.name_entry.get())
-        dir = self.dir_entry.get()
-        if not className:
-            tkMessageBox.showinfo("Error", "Please Enter Class Name")
-        if not dir:
-            tkMessageBox.showinfo("Error", "Please Choose Image Directory")
 
-        else:
-            self.class_path_list.append(str(dir))
-            self.class_name_list.append(str(className))
-            self.mylist.insert(0,className)
-
-            self.name_entry.delete(0,tk.END)
-            self.dir_entry.delete(0,tk.END)
-
-
-    def onFinish(self):
-        dataset_name = self.dataset_name_entry.get()
-        if not dataset_name:
-                tkMessageBox.showinfo("Error", "Please Enter dataset name")
-        else:
-            do = datasetOrginizer()
-            do.createTrainingFromDataset(dataset_name,self.class_name_list,self.class_path_list)
-            self.mydatsetlist.insert(0,dataset_name)
-            self.window.destroy()
-
-
-    def OpenExistingDataset(self):
-        dlg = tkFileDialog.askopenfilename(parent=self.parent, initialdir='/home/', title='Select Dataset',
-                                           filetypes=[('nps', '.npz')])
-        filename = dlg
-        print filename
-
-
-    def onError(self):
-        tkMessageBox.showinfo("Error", "Please Choose Image Directory")
 
