@@ -74,7 +74,7 @@ class DatasetManagerGUI:
         commitClassButton.grid(column=9, row=6)
         finishButton.grid(column=5, row=10)
 
-    ### DATASET FUNCTIONS ###
+    ### DATASET MANAGER FUNCTIONS ###
 
     def onOpenDir(self):
         dir = tkFileDialog.askdirectory(title='Select your pictures folder')

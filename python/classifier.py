@@ -3,12 +3,16 @@ import cv2 as cv
 from componentExtractor import componentExtractor
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
+import csv
 
 
 class classifier:
 
     def __init__(self, inputImage):
         self._image = inputImage
+        self.X = None
+        self.y = None
+
 
     def classifieSample(self, Dataset='binData/Default.npz'):
         '''
@@ -22,11 +26,11 @@ class classifier:
         labels = npzfile['arr_1']
         classes = npzfile['arr_2']
 
-        X = trainingData
-        y = classes
+        self.X = trainingData
+        self.y = classes
 
         knn = KNeighborsClassifier(n_neighbors=15,weights='distance')
-        knn.fit(X,y)
+        knn.fit(self.X,self.y)
 
 
         ## Segmentation
@@ -35,9 +39,6 @@ class classifier:
 
 
         for i,component in enumerate(components):
-
-            #cv.namedWindow(str(i), cv.WINDOW_NORMAL)
-            #cv.imshow(str(i), component)
 
             orb = cv.ORB()
             kp = orb.detect(component,None)
@@ -49,8 +50,10 @@ class classifier:
                 kp, des = orb.compute(component, kp)
                 d=des.flatten()
                 res = knn.predict(d)
+
                 print "comp " + str(i) +":" + labels[res[0]]
 
                 im2 = cv.drawKeypoints(component ,kp,color=(0,255,0), flags=0)
                 cv.namedWindow(labels[res[0]] + " comp " + str(i), cv.WINDOW_NORMAL)
                 cv.imshow(labels[res[0]] + " comp " + str(i), im2)
+

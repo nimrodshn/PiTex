@@ -69,8 +69,8 @@ class ForamGUI(tk.Frame):
         self.recordphoto=tk.PhotoImage(file="../icons/record.gif")
 
         recordbtn = tk.Button(controlFrame,image=self.recordphoto,width=60,height=60)
-        playbtn = tk.Button(controlFrame,image=self.playphoto,width=60,height=60)
-        pausebtn = tk.Button(controlFrame,image=self.pausephoto,width=60,height=60,command=self.captureFrameforAnalysis)
+        playbtn = tk.Button(controlFrame,image=self.playphoto,width=60,height=60,command=self.captureFrameforAnalysis)
+        pausebtn = tk.Button(controlFrame,image=self.pausephoto,width=60,height=60)
         stopbtn = tk.Button(controlFrame,image=self.stopphoto,width=60,height=60)
 
         recordbtn.pack(side=tk.LEFT)
@@ -113,7 +113,7 @@ class ForamGUI(tk.Frame):
         controlFrame.grid(column=20,row=1)
         self.datasetlistframe.grid(column=20,row=2, columnspan=10)
 
-    ### Camera Feed Functions ###
+    ### Control Panel Functions ###
 
     def quit_(self,root):
         self.cam.release()
@@ -135,12 +135,22 @@ class ForamGUI(tk.Frame):
         root.after(20, func=lambda: self.update_all(root, image_label, cam))
 
     def captureFrameforAnalysis(self):
-        datasetName = self.mydatasetlist.get(self.mydatasetlist.curselection())
-        dataset_path = "binData/"+datasetName+".npz"
-        print dataset_path
-        img = self.current_frame
-        cl = classifier(img)
-        cl.classifieSample(dataset_path)
+        try:
+            self.mydatasetlist.get(self.mydatasetlist.curselection())
+            datasetName = self.mydatasetlist.get(self.mydatasetlist.curselection())
+            dataset_path = "binData/"+datasetName+".npz"
+            print dataset_path
+
+            img = cv2.cvtColor(self.current_frame, cv2.COLOR_BGR2RGB)
+            cv2.namedWindow("CurrentFrame",cv2.WINDOW_NORMAL)
+            cv2.imshow("CurrentFrame",img)
+
+            cl = classifier(img)
+            cl.classifieSample(dataset_path)
+        except:
+            tkMessageBox.showerror("Error","Please pick a Dataset")
+
+
 
 
 
