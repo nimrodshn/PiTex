@@ -2,13 +2,13 @@ __author__ = 'nimrod shneor'
 import numpy as np
 import os
 import cv2 as cv
+from featureExtractor import featureExtractor
 
 class datasetOrginizer:
     def __init__(self):
        self._dataSets=[]
        defaultSet = np.load('binData/Default.npz')
        self._dataSets.append(defaultSet)
-
 
 
     def createTrainingFromDataset(self, dataset_name, labels_list, path_list):
@@ -18,12 +18,14 @@ class datasetOrginizer:
         :param location: location where the data was collected
         :return:
         '''
+
         base_path = "binData/"
 
         labels = []
         trainingData = []
         classes = []
         cl = 0
+
 
         for i, path in enumerate(path_list):
 
@@ -35,28 +37,23 @@ class datasetOrginizer:
 
                 p = path + "/" + item
                 print p # DEBUG
-
                 im = cv.imread(p)
 
-                orb = cv.ORB()
-                kp = orb.detect(im,None)
+                fe = featureExtractor(im)
 
-                ## Normalize the Feature Vector, taking only Data with 15 KeyPoints 
-                ## This needs work! not just picking "fifteen points" at random
-                if len(kp) > 15:
-                    kp = kp[:15]
-                    kp, des = orb.compute(im, kp)
+                feature_vector = fe.computeFeatureVector()
 
-                    ####### Transformations on the Array #######
-                    d=des.flatten()
-                    trainingData.append(d)
-                    classes.append(cl)
+                trainingData.append(feature_vector)
+                classes.append(cl)
 
             cl = cl + 1
+        print np.shape(trainingData)
+        print trainingData
+        print np.shape(classes)
+        print classes
 
         np.savez(os.path.join(base_path, dataset_name), trainingData, labels, classes)
-
-
+        return trainingData, classes, labels
 
     def addImageToTrainingSet(self, path, cl, Trainingset='Default.npz'):
         '''

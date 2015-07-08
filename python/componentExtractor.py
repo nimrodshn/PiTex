@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import random
+
 class componentExtractor:
 
     def __init__(self, inputImage):
@@ -11,7 +12,7 @@ class componentExtractor:
         self._image = inputImage
 
 
-    @property
+
     def extractComponents(self):
 
         """
@@ -20,35 +21,40 @@ class componentExtractor:
         """
 
         components = []
-        imgray = cv2.cvtColor(self._image, cv2.COLOR_BGR2GRAY)
+        try:
+            imgray = cv2.cvtColor(self._image, cv2.COLOR_BGR2GRAY)
+        except:
+            imgray = self._image
 
-        # What method should we use?
-        ret, thresh = cv2.threshold(imgray ,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-        #ret, thresh = cv2.threshold(imgray,100,255,0)
+        maxIntensity = 255.0 # depends on dtype of image data
+
+        # Parameters for manipulating image data
+        phi = 1
+        theta = 1
+
+
+        imgray = (maxIntensity/phi)*(imgray/(maxIntensity/theta))**0.5
+
+        imgray = np.array(imgray,dtype=np.uint8)
+
+        ret, thresh = cv2.threshold(imgray,0,255,cv2.THRESH_OTSU)
+
+        #thresh = cv2.adaptiveThreshold(imgray,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,9,0)
+
+        cv2.namedWindow("thresh",cv2.WINDOW_NORMAL)
+        cv2.imshow("thresh",thresh)
 
         contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         im = cv2.cvtColor(imgray,cv2.COLOR_GRAY2BGR)
         for i,contour in enumerate(contours):
-            if (cv2.contourArea(contour)>200):
+            if (cv2.contourArea(contour)>150):
 
                 rect = cv2.boundingRect(contours[i])
                 component = cv2.cv.GetSubRect(cv2.cv.fromarray(self._image),rect)
 
-                c = np.asanyarray(component,dtype='uint8')
+                c = np.asanyarray(component)
 
-                maxIntensity = 255.0
-
-                # Parameters for manipulating image data
-                phi = 1
-                theta = 1
-
-                # Decrease intensity such that
-                # dark pixels become much darker,
-                # bright pixels become slightly dark
-                enhanced_contrast = (maxIntensity/phi)*(c/(maxIntensity/theta))**0.5
-                contrast = np.array(enhanced_contrast,dtype=np.uint8)
-
-                components.append(contrast)
+                components.append((c,rect))
                 cv2.drawContours(im, contours, i, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), -1)
 
         ############### Debug ##################
