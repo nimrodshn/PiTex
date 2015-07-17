@@ -24,7 +24,77 @@ class classifier:
         self.y = None
 
 
-    def posNegDecompose(self, Dataset='binData/test4.npz'):
+
+
+    def plotPCA(self,Dataset):
+        npzfile = np.load(Dataset)
+        trainingData = npzfile['arr_0']
+        labels = npzfile['arr_1']
+        classes = npzfile['arr_2']
+
+        X = trainingData
+        y = classes
+
+        print np.shape(X)
+
+        pca = PCA(n_components=2)
+        X_r = pca.fit(self.X).transform(self.X)
+
+        for c, i, target_name in zip("rgb", [0, 1], ["negative","positive"]):
+             plt.scatter(X_r[self.y == i, 0], X_r[self.y == i, 1], c=c, label=target_name)
+        plt.legend()
+        plt.title('PCA')
+        plt.xticks([])
+        plt.yticks([])
+        plt.show()
+
+
+
+    def validation(self,val_images, Dataset):
+        '''
+        Main Validation function to validate model on
+        :param val_images:
+        :param Dataset:
+        :return:
+        '''
+
+        npzfile = np.load(Dataset)
+        trainingData = npzfile['arr_0']
+        labels = npzfile['arr_1']
+        classes = npzfile['arr_2']
+
+        X = trainingData
+        y = classes
+
+        clf = SVC(C=1, cache_size=200, class_weight=None, coef0=0.0, degree=2,
+                  gamma=0.0, kernel='poly', max_iter=-1, probability=False, random_state=None,
+                  shrinking=True, tol=0.001, verbose=False)
+        clf.fit(X,y)
+
+
+        print np.shape(X)
+
+        #print val_images
+
+        test_set = val_images
+        for num in test_set:
+            print num
+            im = cv.imread("..//Samples//Validation_Set//" + str(num) + ".jpg")
+            fe = featureExtractor(im)
+            feature_vector = fe.computeFeatureVector()
+            res = clf.predict(feature_vector)
+            print res
+
+            if res[0] == 1:
+                cv.namedWindow("positive" + str(num),cv.WINDOW_NORMAL)
+                cv.imshow("positive" + str(num),im)
+            else:
+                cv.namedWindow("negative" + str(num),cv.WINDOW_NORMAL)
+                cv.imshow("negative" + str(num),im)
+
+
+
+    def posNegDecompose(self, Dataset):
         '''
         :param Dataset: The dataset used to create the model.
          Main Classifier Function.
@@ -40,43 +110,6 @@ class classifier:
         self.y = classes
 
         print np.shape(self.X)
-        
-
-        '''
-        pca = PCA(n_components=2)
-        X_r = pca.fit(self.X).transform(self.X)
-
-        for c, i, target_name in zip("rgb", [0, 1], ["negative","positive"]):
-            plt.scatter(X_r[self.y == i, 0], X_r[self.y == i, 1], c=c, label=target_name)
-        plt.legend()
-        plt.title('PCA')
-        plt.xticks([])
-        plt.yticks([])
-        plt.show()
-        '''
-        '''
-        x_train, x_test, y_train, y_test = cross_validation.train_test_split(self.X,
-            self.y, test_size=0.20)
-
-        parameters = {'kernel': ['linear', 'rbf'], 'C': [1, 10, 100, 1000],
-            'gamma': [0.01, 0.001, 0.0001]}
-        # search for the best classifier within the search space and return it
-        clf = grid_search.GridSearchCV(SVC(), parameters).fit(x_train, y_train)
-        svm = clf.best_estimator_
-
-        print()
-        print('Parameters:', clf.best_params_)
-        print()
-        print('Best classifier score')
-        print(metrics.classification_report(y_test,
-            svm.predict(x_test)))
-        '''
-        
-        #rf = RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1)
-        #rf.fit(self.X,self.y)
-
-        #bdt = AdaBoostClassifier(DecisionTreeClassifier(max_depth=4), n_estimators=300)
-        #bdt.fit(self.X,self.y)
 
         clf = GaussianNB()
         clf.fit(self.X,self.y)
@@ -85,8 +118,10 @@ class classifier:
         ce = componentExtractor(self._image)
         components = ce.extractComponents() # THIS IS A LIST
 
-        #clf = SVC(kernel="linear",C=1,gamma=0.01)
-        #clf.fit(self.X,self.y)
+        # clf = SVC(C=2, cache_size=200, class_weight=None, coef0=0.0, degree=2,
+        #           gamma=0.0, kernel='poly', max_iter=-1, probability=False, random_state=None,
+        #           shrinking=True, tol=0.001, verbose=False)
+        # clf.fit(self.X,self.y)
 
         
         for i, component in enumerate(components):
@@ -97,7 +132,7 @@ class classifier:
             #cv.namedWindow("result"+str(i),cv.WINDOW_NORMAL)
             #cv.imshow("result"+str(i), component[0])
 
-            print feature_vector
+            #print feature_vector
 
             res = clf.predict(feature_vector)
             print res

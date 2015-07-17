@@ -16,6 +16,7 @@ from sklearn.decomposition import PCA
 import lasagne
 import theano.tensor as T
 import numpy as np
+import random
 
 
 def main():
@@ -93,9 +94,6 @@ def segmentationTest():
         feature_vector = fe.computeFeatureVector()
         featureMatrix.append(feature_vector)
 
-        #cv.imshow(str(i),component[0])
-        #cv.namedWindow(str(i))
-
         svm = SVC(kernel="rbf",C=1,gamma=0.01)
         svm.fit(X,y)
 
@@ -123,13 +121,20 @@ def segmentationTest():
     cv.waitKey()
 
 def classifierTest():
-    img = cv.imread("..//Samples//4//PL29II Nov 4-5 0054.tif")
+    img = cv.imread("..//Samples//4//PL29II Nov 4-5 0059.tif")
     cv.namedWindow("Sample",cv.WINDOW_NORMAL)
     cv.imshow("Sample",img)
 
     cl = classifier(img)
-    cl.posNegDecompose()
+    cl.posNegDecompose(Dataset="binData/test4.npz")
 
+    cv.waitKey()
+
+def validateClassifier():
+    img = cv.imread("..//Samples//4//PL29II Nov 4-5 0059.tif")
+    test_num =  random.sample(range(1, 203), 100)
+    cl = classifier(img)
+    cl.validation(test_num,"binData/test4.npz")
     cv.waitKey()
 
 if __name__ == '__main__':
@@ -138,5 +143,6 @@ if __name__ == '__main__':
     #CNNTest()
     #featureExtractorTest()
     #DatasetOrgenizerTest()
-    classifierTest()
+    #classifierTest()
+    validateClassifier()
     #segmentationTest()

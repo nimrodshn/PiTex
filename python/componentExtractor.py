@@ -16,7 +16,7 @@ class componentExtractor:
     def extractComponents(self):
 
         """
-        Main image processing and segmentation function
+        Main image processing and segmentation class
         returns: a list of components to be analyzed as "suspected Forams".
         """
 
