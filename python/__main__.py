@@ -27,20 +27,66 @@ def main():
 
     cv.waitKey()
 
+def featureSelectionTest():
+    clf = classifier()
+    # clf = classifier()
+    # clf.plotPCA(Dataset="binData/test4.npz")
+    #feature_vector = fe.computeFeatureVector()
+    #print feature_vector
+
+
+
 def featureExtractorTest():
-    features = {"morphotype":[],"gabor":[],"haralick":[]}
-    path = "../data/training/Default/orbiculus/orbiculus (1).jpg"
+    path1 = "../data/training/Default/miliolids/miliolid1.jpg"
+    path2 = "../data/training/Default/Ammonia beccarii/A. beccarii5.jpg"
 
-    im = cv.imread(path)
 
-    cv.namedWindow(path,cv.WINDOW_NORMAL)
-    cv.imshow(path,im)
+    im1 = cv.imread(path1)
+    im2 = cv.imread(path2)
 
-    fe = featureExtractor(im)
 
-    feature_vector = fe.computeFeatureVector()
 
-    print feature_vector
+    # sobelx64f = cv.Sobel(im1,cv.CV_64F,1,1,ksize=5)
+    # abs_sobel64f = np.absolute(sobelx64f)
+    # sobel1 = np.uint8(abs_sobel64f)
+
+    # cv.namedWindow("sobel1",cv.WINDOW_NORMAL)
+    # cv.imshow("sobel1",sobel1)
+
+    # sobelx64f = cv.Sobel(im2,cv.CV_64F,1,1,ksize=5)
+    # abs_sobel64f = np.absolute(sobelx64f)
+    # sobel2= np.uint8(abs_sobel64f)
+
+    # cv.namedWindow("sobel2",cv.WINDOW_NORMAL)
+    # cv.imshow("sobel2",sobel2)
+
+
+    fig, axes = plt.subplots(nrows=2, ncols=2)
+
+    for i,im in [(1,im1), (3,im2)]:        
+        plt.subplot(2,2,i)
+        plt.imshow(im,cmap = 'gray')
+        plt.xticks([])
+        plt.yticks([])
+        plt.title('Original Image')
+
+        kernel = np.ones((9,9),np.float32)/40
+        dst = cv.filter2D(im,-1,kernel)
+
+        #dst = cv.GaussianBlur(im,(7,7),0)
+
+
+        edges = cv.Canny(dst,40,40)
+        plt.subplot(2,2,i+1)
+        plt.imshow(edges,cmap = 'gray')
+        plt.title('Edge Image')
+        plt.xticks([])
+        plt.yticks([])
+
+        
+    plt.show()
+
+    cv.waitKey()
 
 def DatasetOrgenizerTest():
     ds = datasetOrginizer()
@@ -57,10 +103,10 @@ def CNNTest():
     l_in = lasagne.layers.InputLayer((100,50))
     l_hidden = lasagne.layers.DenseLayer(l_in,num_units=200)
     l_out = lasagne.layers.DenseLayer(l_hidden,num_units=10,nonlinearity=T.nnet.softmax)
+
     #pl.gray()
     #pl.matshow(data.images[1])
     #pl.show()
-
 
 def csvTest():
     with open('eggs.csv', 'wb') as csvfile:
@@ -70,70 +116,24 @@ def csvTest():
         writer.writerow(['Spam', 'Lovely Spam', 'Wonderful Spam'])
 
 def segmentationTest():
-    im = cv.imread("..//Samples//4//PL29II Nov 4-5 0040.tif")
-    cv.namedWindow("Sample",cv.WINDOW_NORMAL)
-    cv.imshow("Sample",im)
-
-
-    npzfile = np.load('binData/test2.npz')
-    trainingData = npzfile['arr_0']
-    labels = npzfile['arr_1']
-    classes = npzfile['arr_2']
-
-    X = trainingData
-    y = classes
-
     ce = componentExtractor(im)
     components = ce.extractComponents()
-
-    featureMatrix = []
-    for i, component in enumerate(components):
-        fe = featureExtractor(component[0])
-        #size = fe.computeSize()
-
-        feature_vector = fe.computeFeatureVector()
-        featureMatrix.append(feature_vector)
-
-        svm = SVC(kernel="rbf",C=1,gamma=0.01)
-        svm.fit(X,y)
-
-        res = svm.predict(feature_vector)
-        print res
-
-        if res[0] == 1:
-            x,y,w,h = component[1]
-            cv.rectangle(im,(x,y),(x+w,y+h),(0,255,0),2)
-
-
-    print np.shape(featureMatrix)
-
-    pca = PCA(n_components=2)
-    X_r = pca.fit(featureMatrix).transform(featureMatrix)
-
-    plt.scatter(X_r[:, 0], X_r[:, 1])
-    plt.xticks([])
-    plt.yticks([])
-    plt.legend()
-    plt.title('PCA')
-
-    plt.show()
-
     cv.waitKey()
 
 def classifierTest():
-    img = cv.imread("..//Samples//4//PL29II Nov 4-5 0059.tif")
+    img = cv.imread("..//Samples//4//PL29II Nov 4-5 0002.tif")
     cv.namedWindow("Sample",cv.WINDOW_NORMAL)
     cv.imshow("Sample",img)
 
     cl = classifier(img)
     cl.posNegDecompose(Dataset="binData/test4.npz")
+    #cl.plotPCA(Dataset="binData/test4.npz")
 
     cv.waitKey()
 
 def validateClassifier():
-    img = cv.imread("..//Samples//4//PL29II Nov 4-5 0059.tif")
     test_num =  random.sample(range(1, 203), 100)
-    cl = classifier(img)
+    cl = classifier()
     cl.validation(test_num,"binData/test4.npz")
     cv.waitKey()
 
@@ -143,6 +143,6 @@ if __name__ == '__main__':
     #CNNTest()
     #featureExtractorTest()
     #DatasetOrgenizerTest()
-    #classifierTest()
-    validateClassifier()
+    classifierTest()
+    #validateClassifier()
     #segmentationTest()

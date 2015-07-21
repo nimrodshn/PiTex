@@ -6,19 +6,14 @@ from sklearn.svm import SVC
 import csv
 from featureExtractor import featureExtractor
 import matplotlib.pyplot as plt
-from sklearn.ensemble import (RandomForestClassifier, ExtraTreesClassifier,
-                              AdaBoostClassifier)
 from sklearn.naive_bayes import GaussianNB
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.decomposition import PCA
 from sklearn import cross_validation
-from sklearn import grid_search
 from sklearn import metrics
 
 class classifier:
 
-    def __init__(self, inputImage):
+    def __init__(self, inputImage = None):
         self._image = inputImage
         self.X = None
         self.y = None
@@ -66,18 +61,18 @@ class classifier:
         X = trainingData
         y = classes
 
-        clf = SVC(C=1, cache_size=200, class_weight=None, coef0=0.0, degree=2,
-                  gamma=0.0, kernel='poly', max_iter=-1, probability=False, random_state=None,
-                  shrinking=True, tol=0.001, verbose=False)
+        clf = clf = SVC(C=1, cache_size=200, class_weight={1: 10}, coef0=0.0, degree=2,
+                   gamma=0.0, kernel='poly', max_iter=-1, probability=False, random_state=None,
+                   shrinking=True, tol=0.001, verbose=False)
         clf.fit(X,y)
 
 
         print np.shape(X)
 
-        #print val_images
+        fig, axes = plt.subplots(nrows=10, ncols=10)
 
         test_set = val_images
-        for num in test_set:
+        for i,num in enumerate(test_set):
             print num
             im = cv.imread("..//Samples//Validation_Set//" + str(num) + ".jpg")
             fe = featureExtractor(im)
@@ -85,19 +80,29 @@ class classifier:
             res = clf.predict(feature_vector)
             print res
 
-            if res[0] == 1:
-                cv.namedWindow("positive" + str(num),cv.WINDOW_NORMAL)
-                cv.imshow("positive" + str(num),im)
-            else:
-                cv.namedWindow("negative" + str(num),cv.WINDOW_NORMAL)
-                cv.imshow("negative" + str(num),im)
+            plt.subplot(10,10,i)
+            plt.imshow(im)
+            plt.xticks([])
+            plt.yticks([])
 
+            if res[0] == 1:
+                plt.title('positive')
+                # cv.namedWindow("positive" + str(num),cv.WINDOW_NORMAL)
+                # cv.imshow("positive" + str(num),im)
+            else:
+                plt.title('negative')
+                # cv.namedWindow("negative" + str(num),cv.WINDOW_NORMAL)
+                # cv.imshow("negative" + str(num),im)
+        
+        fig.subplots_adjust(hspace=.5)
+        
+        plt.show()    
 
 
     def posNegDecompose(self, Dataset):
         '''
         :param Dataset: The dataset used to create the model.
-         Main Classifier Function.
+         This function returns list of 'objects of interest': e.g. suspected forams.
         :return:
         '''
 
@@ -111,21 +116,21 @@ class classifier:
 
         print np.shape(self.X)
 
-        clf = GaussianNB()
-        clf.fit(self.X,self.y)
+        # clf = GaussianNB()
+        # clf.fit(self.X,self.y)
 
         ## Segmentation
         ce = componentExtractor(self._image)
         components = ce.extractComponents() # THIS IS A LIST
 
-        # clf = SVC(C=2, cache_size=200, class_weight=None, coef0=0.0, degree=2,
-        #           gamma=0.0, kernel='poly', max_iter=-1, probability=False, random_state=None,
-        #           shrinking=True, tol=0.001, verbose=False)
-        # clf.fit(self.X,self.y)
+        clf = SVC(C=1, cache_size=200, class_weight={1: 10}, coef0=0.0, degree=2,
+                  gamma=0.0, kernel='poly', max_iter=-1, probability=False, random_state=None,
+                  shrinking=True, tol=0.001, verbose=False)
+        clf.fit(self.X,self.y)
 
         
         for i, component in enumerate(components):
-
+`
             fe = featureExtractor(component[0])
             feature_vector = fe.computeFeatureVector()
 

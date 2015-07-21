@@ -17,7 +17,7 @@ class componentExtractor:
 
         """
         Main image processing and segmentation class
-        returns: a list of components to be analyzed as "suspected Forams".
+        returns: a list of connected-components, these are the obto be fed to the positive-negative decomposition classifier.
         """
 
         components = []
@@ -31,7 +31,6 @@ class componentExtractor:
         # Parameters for manipulating image data
         phi = 1
         theta = 1
-
 
         imgray = (maxIntensity/phi)*(imgray/(maxIntensity/theta))**0.5
 
