@@ -13,6 +13,7 @@ from componentExtractor import componentExtractor
 import matplotlib.pyplot as plt
 from sklearn.svm import SVC
 from sklearn.decomposition import PCA
+import matplotlib.pyplot as pl
 import lasagne
 import theano.tensor as T
 import numpy as np
@@ -104,9 +105,9 @@ def CNNTest():
     l_hidden = lasagne.layers.DenseLayer(l_in,num_units=200)
     l_out = lasagne.layers.DenseLayer(l_hidden,num_units=10,nonlinearity=T.nnet.softmax)
 
-    #pl.gray()
-    #pl.matshow(data.images[1])
-    #pl.show()
+    # pl.gray()
+    # pl.matshow(data.images[1])
+    # pl.show()
 
 def csvTest():
     with open('eggs.csv', 'wb') as csvfile:
@@ -121,7 +122,7 @@ def segmentationTest():
     cv.waitKey()
 
 def classifierTest():
-    img = cv.imread("..//Samples//4//PL29II Nov 4-5 0002.tif")
+    img = cv.imread("..//Samples//4//PL29II Nov 4-5 0011.tif")
     cv.namedWindow("Sample",cv.WINDOW_NORMAL)
     cv.imshow("Sample",img)
 
@@ -140,9 +141,9 @@ def validateClassifier():
 if __name__ == '__main__':
     #main()
 
-    #CNNTest()
+    CNNTest()
     #featureExtractorTest()
     #DatasetOrgenizerTest()
-    classifierTest()
+    #classifierTest()
     #validateClassifier()
     #segmentationTest()

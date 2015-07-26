@@ -20,7 +20,6 @@ class classifier:
 
 
 
-
     def plotPCA(self,Dataset):
         npzfile = np.load(Dataset)
         trainingData = npzfile['arr_0']
@@ -45,7 +44,7 @@ class classifier:
 
 
 
-    def validation(self,val_images, Dataset):
+    def validation(self, val_images, Dataset):
         '''
         Main Validation function to validate model on
         :param val_images:
@@ -116,8 +115,8 @@ class classifier:
 
         print np.shape(self.X)
 
-        # clf = GaussianNB()
-        # clf.fit(self.X,self.y)
+        #clf = GaussianNB()
+        #clf.fit(self.X,self.y)
 
         ## Segmentation
         ce = componentExtractor(self._image)
@@ -130,7 +129,6 @@ class classifier:
 
         
         for i, component in enumerate(components):
-`
             fe = featureExtractor(component[0])
             feature_vector = fe.computeFeatureVector()
 
