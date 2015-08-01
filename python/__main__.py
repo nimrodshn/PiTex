@@ -6,7 +6,7 @@ from Tkinter import *
 from GUI import ForamGUI
 from classifier import classifier
 import csv
-from dataSetOrginizer import datasetOrginizer
+from datasetOrginizer import datasetOrginizer
 from sklearn.datasets import load_digits
 from featureExtractor import featureExtractor
 from componentExtractor import componentExtractor
@@ -44,8 +44,6 @@ def featureExtractorTest():
 
     im1 = cv.imread(path1)
     im2 = cv.imread(path2)
-
-
 
     # sobelx64f = cv.Sobel(im1,cv.CV_64F,1,1,ksize=5)
     # abs_sobel64f = np.absolute(sobelx64f)
@@ -89,7 +87,7 @@ def featureExtractorTest():
 
     cv.waitKey()
 
-def DatasetOrgenizerTest():
+def datasetOrgenizerTest():
     ds = datasetOrginizer()
     path_list = ["../data/training2/negative","../data/training2/positive"]
     class_list = ["negative","positive"]
@@ -139,11 +137,11 @@ def validateClassifier():
     cv.waitKey()
 
 if __name__ == '__main__':
-    #main()
+    main()
 
-    CNNTest()
+    #CNNTest()
     #featureExtractorTest()
-    #DatasetOrgenizerTest()
+    #datasetOrgenizerTest()
     #classifierTest()
     #validateClassifier()
     #segmentationTest()

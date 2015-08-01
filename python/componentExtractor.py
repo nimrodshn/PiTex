@@ -14,7 +14,6 @@ class componentExtractor:
 
 
     def extractComponents(self):
-
         """
         Main image processing and segmentation class
         returns: a list of connected-components, these are the obto be fed to the positive-negative decomposition classifier.
@@ -37,8 +36,6 @@ class componentExtractor:
         imgray = np.array(imgray,dtype=np.uint8)
 
         ret, thresh = cv2.threshold(imgray,0,255,cv2.THRESH_OTSU)
-
-        #thresh = cv2.adaptiveThreshold(imgray,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,9,0)
 
         cv2.namedWindow("thresh",cv2.WINDOW_NORMAL)
         cv2.imshow("thresh",thresh)

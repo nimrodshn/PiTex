@@ -115,9 +115,6 @@ class classifier:
 
         print np.shape(self.X)
 
-        #clf = GaussianNB()
-        #clf.fit(self.X,self.y)
-
         ## Segmentation
         ce = componentExtractor(self._image)
         components = ce.extractComponents() # THIS IS A LIST
@@ -156,7 +153,7 @@ class classifier:
     def classifieSample(self, Dataset='binData/Default.npz'):
         '''
         :param Dataset: The dataset used to create the model.
-         Main Classifier Function.
+         Main Classifier Function. This function classifies 'Potential Forams' to their different species after posNegDecompose has be used to distinguish between positive and negative components.
         :return:
         '''
 
@@ -167,10 +164,6 @@ class classifier:
 
         self.X = trainingData
         self.y = classes
-
-        #knn = KNeighborsClassifier(n_neighbors=15,weights='distance')
-        #knn.fit(self.X,self.y)
-
 
         ## Segmentation
         ce = componentExtractor(self._image)

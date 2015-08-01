@@ -2,7 +2,7 @@ __author__ = 'nimrodshn'
 import Tkinter as tk
 import tkMessageBox
 import tkFileDialog
-from dataSetOrginizer import datasetOrginizer
+from datasetOrginizer import datasetOrginizer
 
 
 
