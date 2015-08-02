@@ -1,6 +1,11 @@
+__author__ = 'Nimrod Shneor'
+
 import cv2
 import numpy as np
 import random
+
+# TODO:
+# 1. explore more elaborate ideas of segmentation.
 
 class componentExtractor:
 

@@ -1,4 +1,5 @@
 __author__ = 'Nimrod Shneor'
+
 import cv2 as cv
 from componentExtractor import componentExtractor
 import numpy as np
@@ -11,14 +12,17 @@ from sklearn.decomposition import PCA
 from sklearn import cross_validation
 from sklearn import metrics
 
+# TODO:
+# 1. Add cross validation to tune SVM parameters in posNeg Decomposition method.
+# 2. Add more images to validation set from different samples
+# 3. Start Exploring Neural-Network as a classifier for posNeg Decomposition.
+
 class classifier:
 
     def __init__(self, inputImage = None):
         self._image = inputImage
         self.X = None
         self.y = None
-
-
 
     def plotPCA(self,Dataset):
         npzfile = np.load(Dataset)
@@ -41,8 +45,6 @@ class classifier:
         plt.xticks([])
         plt.yticks([])
         plt.show()
-
-
 
     def validation(self, val_images, Dataset):
         '''
@@ -96,7 +98,6 @@ class classifier:
         fig.subplots_adjust(hspace=.5)
         
         plt.show()    
-
 
     def posNegDecompose(self, Dataset):
         '''

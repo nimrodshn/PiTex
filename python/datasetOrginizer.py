@@ -4,7 +4,8 @@ import os
 import cv2 as cv
 from featureExtractor import featureExtractor
 
-# TODO: add method: add data to training set
+# TODO: 
+# 1. Add method to add data to training set.
 
 class datasetOrginizer:
 
