@@ -115,16 +115,16 @@ class classifier:
 
         print np.shape(self.X)
 
-        ## Segmentation
+        ### Segmentation
         ce = componentExtractor(self._image)
         components = ce.extractComponents() # THIS IS A LIST
 
+        ### Model Building 
         clf = SVC(C=1, cache_size=200, class_weight={1: 10}, coef0=0.0, degree=2,
                   gamma=0.0, kernel='poly', max_iter=-1, probability=False, random_state=None,
                   shrinking=True, tol=0.001, verbose=False)
         clf.fit(self.X,self.y)
 
-        
         for i, component in enumerate(components):
             fe = featureExtractor(component[0])
             feature_vector = fe.computeFeatureVector()

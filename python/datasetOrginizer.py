@@ -1,10 +1,13 @@
-__author__ = 'nimrod shneor'
+__author__ = 'Nimrod Shneor'
 import numpy as np
 import os
 import cv2 as cv
 from featureExtractor import featureExtractor
 
+# TODO: add method: add data to training set
+
 class datasetOrginizer:
+
     def __init__(self):
        self._dataSets=[]
        defaultSet = np.load('binData/Default.npz')
@@ -26,7 +29,7 @@ class datasetOrginizer:
         classes = []
         cl = 0
 
-
+        ### Building the feature matrix.
         for i, path in enumerate(path_list):
 
             labels.append(labels_list[i])
@@ -48,46 +51,29 @@ class datasetOrginizer:
 
             cl = cl + 1
 
-        # for column in np.shape(trainingData)[1]:
-        #     print column
+        ### Normalization of features to unit range [0,1].
+        num_columns = np.shape(trainingData)[1]
+        num_rows = np.shape(trainingData)[0]
+        print num_columns
+        for i in range(num_columns):
+            print range(num_columns)
+            print i
+            print trainingData[:,i]
+            ### computing min & max entrys in each feature (column) in the feature matrix.
+            max_col = np.max(trainingData[:,i])
+            min_col = np.min(trainingData[:,i])
+            for j in range(num_rows):
+                trainingData[j,i] = (trainingData[j,i] - min_col)/ (max_col - min_col)
 
+
+        ### DEBUG
         print np.shape(trainingData)
         print trainingData
         print np.shape(classes)
         print classes
 
+        ### SAVING THE DATASETS
         np.savez(os.path.join(base_path, dataset_name), trainingData, labels, classes)
         return trainingData, classes, labels
 
-    def addImageToTrainingSet(self, path, cl, Trainingset='Default.npz'):
-        '''
-        :param InputImage: Image to be added to training set.
-        :param cl: the class number of the Foram if exist.
-        :return:Void
-        '''
 
-        npzfile = np.load(Trainingset) # Loading Dataset
-        trainingData = npzfile['arr_0']
-        labels = npzfile['arr_1']
-        classes = npzfile['arr_2']
-
-        for item in os.listdir(path):
-
-            p = path + "/" + item
-
-            img = cv.imread(p)
-            orb = cv.ORB()
-            kp = orb.detect(img,None)
-
-            ## Normalize the Data, taking only Data with 15 KeyPoints
-            if len(kp) > 15:
-
-                kp = kp[:15]
-                kp, des = orb.compute(img, kp)
-
-                ####### Transformations on the Array #######
-                d=des.flatten()
-                trainingData.append(d)
-                classes.append(cl)
-
-        np.savez(Trainingset,trainingData,labels, classes)

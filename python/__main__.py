@@ -19,7 +19,6 @@ import theano.tensor as T
 import numpy as np
 import random
 
-
 def main():
     root = Tk()
     ForamGUI(root)
@@ -28,14 +27,14 @@ def main():
 
     cv.waitKey()
 
+########### TESTS ###########
+
 def featureSelectionTest():
     clf = classifier()
     # clf = classifier()
     # clf.plotPCA(Dataset="binData/test4.npz")
     #feature_vector = fe.computeFeatureVector()
     #print feature_vector
-
-
 
 def featureExtractorTest():
     path1 = "../data/training/Default/miliolids/miliolid1.jpg"
@@ -96,7 +95,6 @@ def datasetOrgenizerTest():
     X = training
     y = classes
 
-
 def CNNTest():
     data = load_digits()
     l_in = lasagne.layers.InputLayer((100,50))
@@ -126,7 +124,7 @@ def classifierTest():
 
     cl = classifier(img)
     cl.posNegDecompose(Dataset="binData/test4.npz")
-    #cl.plotPCA(Dataset="binData/test4.npz")
+    cl.plotPCA(Dataset="binData/test4.npz")
 
     cv.waitKey()
 
@@ -136,12 +134,13 @@ def validateClassifier():
     cl.validation(test_num,"binData/test4.npz")
     cv.waitKey()
 
+
 if __name__ == '__main__':
-    main()
+    #main()
 
     #CNNTest()
     #featureExtractorTest()
-    #datasetOrgenizerTest()
-    #classifierTest()
+    datasetOrgenizerTest()
+    classifierTest()
     #validateClassifier()
     #segmentationTest()
