@@ -2,7 +2,7 @@ __author__ = 'Nimrod Shneor'
 
 import cv2 as cv
 import numpy as np
-import mahotas as #mh
+import mahotas as mh
 from skimage.feature import local_binary_pattern
 
 # TODO: 

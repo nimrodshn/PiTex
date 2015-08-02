@@ -19,12 +19,14 @@ class componentExtractor:
 
 
     def extractComponents(self):
-        """
+        '''
         Main image processing and segmentation class
         returns: a list of connected-components, these are the obto be fed to the positive-negative decomposition classifier.
-        """
+        '''
 
         components = []
+
+        # Check if image is grayscale.
         try:
             imgray = cv2.cvtColor(self._image, cv2.COLOR_BGR2GRAY)
         except:

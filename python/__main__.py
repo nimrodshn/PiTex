@@ -140,7 +140,7 @@ if __name__ == '__main__':
 
     #CNNTest()
     #featureExtractorTest()
-    datasetOrgenizerTest()
+    #datasetOrgenizerTest()
     classifierTest()
     #validateClassifier()
     #segmentationTest()

@@ -14,7 +14,6 @@ class datasetOrginizer:
        defaultSet = np.load('binData/Default.npz')
        self._dataSets.append(defaultSet)
 
-
     def createTrainingFromDataset(self, dataset_name, labels_list, path_list):
         '''
         Creates a new training set to work on from given dataset in location: creating Feature Vector, Normalize etc..
@@ -53,28 +52,23 @@ class datasetOrginizer:
             cl = cl + 1
 
         ### Normalization of features to unit range [0,1].
-        num_columns = np.shape(trainingData)[1]
-        num_rows = np.shape(trainingData)[0]
-        print num_columns
-        for i in range(num_columns):
-            print range(num_columns)
-            print i
-            print trainingData[:,i]
-            ### computing min & max entrys in each feature (column) in the feature matrix.
-            max_col = np.max(trainingData[:,i])
-            min_col = np.min(trainingData[:,i])
-            for j in range(num_rows):
-                trainingData[j,i] = (trainingData[j,i] - min_col)/ (max_col - min_col)
-
+        B = np.asmatrix(trainingData)
+        num_columns = np.shape(B)[1]
+        num_rows = np.shape(B)[0]
+        for j in range(num_columns):
+            print B[:,j]
+            ## computing min & max entrys in each feature category (column) in the feature matrix.
+            max_col = np.max(B[:,j])
+            min_col = np.min(B[:,j])    
+            for i in range(num_rows):
+                B[i,j] = (B[i,j] - min_col) / (max_col - min_col)
 
         ### DEBUG
         print np.shape(trainingData)
-        print trainingData
         print np.shape(classes)
-        print classes
 
         ### SAVING THE DATASETS
-        np.savez(os.path.join(base_path, dataset_name), trainingData, labels, classes)
-        return trainingData, classes, labels
+        np.savez(os.path.join(base_path, dataset_name), B, labels, classes)
+        return B, classes, labels
 
 
