@@ -8,7 +8,7 @@ from skimage.feature import local_binary_pattern
 # TODO: 
 # 1. Add feature learning.
 # 2. Add feature normalization.
-# 3. Add features: mean intensinty, standard dev of intensint, "room" feature(!!)
+# 3. Add features: mean intensinty, standard dev of intensint, "room structure" feature(!!)
 
 class featureExtractor:
     def __init__(self,input):
@@ -31,6 +31,7 @@ class featureExtractor:
         #hist = hist.tolist()
 
         haralick = mh.features.haralick(self.im, ignore_zeros=False, preserve_haralick_bug=False, compute_14th_feature=False).flatten()
+        
         haralick = haralick.tolist()
 
         #size = self.computeSize()
@@ -52,7 +53,7 @@ class featureExtractor:
         lbp = lbp.tolist()
 
         feature_vector = haralick + lbp 
-
+        
         #feature_vector = gabor_vector + shape + hist
 
         #feature_vector = hist

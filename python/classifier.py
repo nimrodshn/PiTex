@@ -9,13 +9,16 @@ from featureExtractor import featureExtractor
 import matplotlib.pyplot as plt
 from sklearn.naive_bayes import GaussianNB
 from sklearn.decomposition import PCA
+from sklearn.cross_validation import train_test_split
+from sklearn.grid_search import GridSearchCV
+from sklearn.metrics import classification_report
 from sklearn import cross_validation
 from sklearn import metrics
 
 # TODO:
 # 1. Add cross validation to tune SVM parameters in posNeg Decomposition method.
 # 2. Add more images to validation set from different samples
-# 3. Start Exploring Neural-Network as a classifier for posNeg Decomposition.
+# 3. Start Exploring Neural-Network as a classifier for posNeg Decomposition / Specie Classification.
 
 class classifier:
 
@@ -36,10 +39,10 @@ class classifier:
         print np.shape(X)
 
         pca = PCA(n_components=2)
-        X_r = pca.fit(self.X).transform(self.X)
+        X_r = pca.fit(X).transform(X)
 
         for c, i, target_name in zip("rgb", [0, 1], ["negative","positive"]):
-             plt.scatter(X_r[self.y == i, 0], X_r[self.y == i, 1], c=c, label=target_name)
+             plt.scatter(X_r[y == i, 0], X_r[y == i, 1], c=c, label=target_name)
         plt.legend()
         plt.title('PCA')
         plt.xticks([])
@@ -50,7 +53,7 @@ class classifier:
         '''
         Main Validation function to validate model on
         :param val_images:
-        :param Dataset:
+        :param Dataset: Path to a given dataset in the format of npz. see datasetOrginizer Class.
         :return:
         '''
 
@@ -58,26 +61,31 @@ class classifier:
         trainingData = npzfile['arr_0']
         labels = npzfile['arr_1']
         classes = npzfile['arr_2']
+        max_min_features = npzfile['arr_3']
 
         X = trainingData
         y = classes
 
-        clf = clf = SVC(C=1, cache_size=200, class_weight={1: 10}, coef0=0.0, degree=2,
-                   gamma=0.0, kernel='poly', max_iter=-1, probability=False, random_state=None,
-                   shrinking=True, tol=0.001, verbose=False)
+        clf = SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0, degree=3,
+            gamma=0.0, kernel='linear', max_iter=-1, probability=False,
+            random_state=None, shrinking=True, tol=0.001, verbose=False)        
         clf.fit(X,y)
-
-
-        print np.shape(X)
 
         fig, axes = plt.subplots(nrows=10, ncols=10)
 
         test_set = val_images
         for i,num in enumerate(test_set):
-            print num
+            #print num
             im = cv.imread("..//Samples//Validation_Set//" + str(num) + ".jpg")
             fe = featureExtractor(im)
             feature_vector = fe.computeFeatureVector()
+            # Normalize feature vector
+            for k, num in enumerate(feature_vector):
+                max_feature = max_min_features[k][0]
+                min_feature = max_min_features[k][1]
+                feature_vector[k] = (feature_vector[k] - min_feature) / (max_feature - min_feature)
+
+
             res = clf.predict(feature_vector)
             print res
 
@@ -110,11 +118,10 @@ class classifier:
         trainingData = npzfile['arr_0']
         labels = npzfile['arr_1']
         classes = npzfile['arr_2']
+        max_min_features = npzfile['arr_3']
 
-        self.X = trainingData
-        self.y = classes
-
-        print np.shape(self.X)
+        X = trainingData
+        y = classes
 
         ### Segmentation
         ce = componentExtractor(self._image)
@@ -124,18 +131,16 @@ class classifier:
         clf = SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0, degree=3,
             gamma=0.0, kernel='linear', max_iter=-1, probability=False,
             random_state=None, shrinking=True, tol=0.001, verbose=False)        
-        clf.fit(self.X,self.y)
+        clf.fit(X,y)
 
         for i, component in enumerate(components):
             fe = featureExtractor(component[0])
             feature_vector = fe.computeFeatureVector()
-            min_feature = np.max(feature_vector)
-            max_feature = np.min(feature_vector)
-            
-            #cv.namedWindow("result"+str(i),cv.WINDOW_NORMAL)
-            #cv.imshow("result"+str(i), component[0])
-
-            #print feature_vector
+            # Normalize feature vector
+            for k, num in enumerate(feature_vector):
+                max_feature = max_min_features[k][0]
+                min_feature = max_min_features[k][1]
+                feature_vector[k] = (feature_vector[k] - min_feature) / (max_feature - min_feature)
 
             res = clf.predict(feature_vector)
             print res
@@ -148,10 +153,55 @@ class classifier:
         cv.namedWindow("positive",cv.WINDOW_NORMAL)
         cv.imshow("positive",self._image)
 
-
         cv.waitKey()
 
+    def crossValidation(self,Dataset):
+        npzfile = np.load(Dataset)
+        trainingData = npzfile['arr_0']
+        labels = npzfile['arr_1']
+        classes = npzfile['arr_2']
+        max_min_features = npzfile['arr_3']
 
+        X = trainingData
+        y = classes
+
+        # Split the dataset in two equal parts
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.5, random_state=0)
+
+        # Set the parameters by cross-validation
+        tuned_parameters = [{'kernel': ['rbf'], 'gamma': [1e-3, 1e-4],
+                             'C': [1, 10, 100, 1000]},
+                            {'kernel': ['linear'], 'C': [1, 10, 100, 1000]}]
+
+        scores = ['precision', 'recall']
+
+        for score in scores:
+            print("# Tuning hyper-parameters for %s" % score)
+
+            clf = GridSearchCV(SVC(C=1), tuned_parameters, cv=5,
+                               scoring='%s' % score)
+            clf.fit(X_train, y_train)
+
+            print("Best parameters set found on development set:")
+            print()
+            print(clf.best_params_)
+            print()
+            print("Grid scores on development set:")
+            print()
+            for params, mean_score, scores in clf.grid_scores_:
+                print("%0.3f (+/-%0.03f) for %r"
+                      % (mean_score, scores.std() * 2, params))
+            print()
+
+            print("Detailed classification report:")
+            print()
+            print("The model is trained on the full development set.")
+            print("The scores are computed on the full evaluation set.")
+            print()
+            y_true, y_pred = y_test, clf.predict(X_test)
+            print(classification_report(y_true, y_pred))
+            print()
 
     def classifieSample(self, Dataset='binData/Default.npz'):
         '''

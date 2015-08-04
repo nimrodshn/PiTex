@@ -31,8 +31,8 @@ def main():
 
 def featureSelectionTest():
     clf = classifier()
-    # clf = classifier()
-    # clf.plotPCA(Dataset="binData/test4.npz")
+    clf = classifier()
+    clf.plotPCA(Dataset="binData/test4.npz")
     #feature_vector = fe.computeFeatureVector()
     #print feature_vector
 
@@ -40,24 +40,8 @@ def featureExtractorTest():
     path1 = "../data/training/Default/miliolids/miliolid1.jpg"
     path2 = "../data/training/Default/Ammonia beccarii/A. beccarii5.jpg"
 
-
     im1 = cv.imread(path1)
     im2 = cv.imread(path2)
-
-    # sobelx64f = cv.Sobel(im1,cv.CV_64F,1,1,ksize=5)
-    # abs_sobel64f = np.absolute(sobelx64f)
-    # sobel1 = np.uint8(abs_sobel64f)
-
-    # cv.namedWindow("sobel1",cv.WINDOW_NORMAL)
-    # cv.imshow("sobel1",sobel1)
-
-    # sobelx64f = cv.Sobel(im2,cv.CV_64F,1,1,ksize=5)
-    # abs_sobel64f = np.absolute(sobelx64f)
-    # sobel2= np.uint8(abs_sobel64f)
-
-    # cv.namedWindow("sobel2",cv.WINDOW_NORMAL)
-    # cv.imshow("sobel2",sobel2)
-
 
     fig, axes = plt.subplots(nrows=2, ncols=2)
 
@@ -70,7 +54,7 @@ def featureExtractorTest():
 
         kernel = np.ones((9,9),np.float32)/40
         dst = cv.filter2D(im,-1,kernel)
-
+        
         #dst = cv.GaussianBlur(im,(7,7),0)
 
 
@@ -118,13 +102,13 @@ def segmentationTest():
     cv.waitKey()
 
 def classifierTest():
-    img = cv.imread("..//Samples//4//PL29II Nov 4-5 0011.tif")
+    img = cv.imread("..//Samples//4//PL29II Nov 4-5 0017.tif")
     cv.namedWindow("Sample",cv.WINDOW_NORMAL)
     cv.imshow("Sample",img)
 
     cl = classifier(img)
     cl.posNegDecompose(Dataset="binData/test4.npz")
-    cl.plotPCA(Dataset="binData/test4.npz")
+    #cl.plotPCA(Dataset="binData/test4.npz")
 
     cv.waitKey()
 
@@ -134,13 +118,18 @@ def validateClassifier():
     cl.validation(test_num,"binData/test4.npz")
     cv.waitKey()
 
+def crossValidationTest():
+    cl = classifier()
+    cl.crossValidation("binData/test4.npz")
 
 if __name__ == '__main__':
     #main()
 
     #CNNTest()
     #featureExtractorTest()
+    #featureSelectionTest()
     #datasetOrgenizerTest()
-    classifierTest()
+    #classifierTest()
+    crossValidationTest()
     #validateClassifier()
     #segmentationTest()

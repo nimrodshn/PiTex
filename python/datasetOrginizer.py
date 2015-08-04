@@ -27,6 +27,7 @@ class datasetOrginizer:
         labels = []
         trainingData = []
         classes = []
+        min_max_features = []
         cl = 0
 
         ### Building the feature matrix.
@@ -58,17 +59,19 @@ class datasetOrginizer:
         for j in range(num_columns):
             print B[:,j]
             ## computing min & max entrys in each feature category (column) in the feature matrix.
-            max_col = np.max(B[:,j])
-            min_col = np.min(B[:,j])    
+            max_feature = np.max(B[:,j])
+            min_feature = np.min(B[:,j])
+            min_max_features.append((max_feature,min_feature)) # Keep max & min entrys of feature map for normalization purposes.    
+            
             for i in range(num_rows):
-                B[i,j] = (B[i,j] - min_col) / (max_col - min_col)
+                B[i,j] = (B[i,j] - min_feature) / (max_feature - min_feature) 
 
-        ### DEBUG
+        ### DEBUG 
         print np.shape(trainingData)
         print np.shape(classes)
 
-        ### SAVING THE DATASETS
-        np.savez(os.path.join(base_path, dataset_name), B, labels, classes)
+        ### SAVING THE DATASETS TO NPZ FORMAT
+        np.savez(os.path.join(base_path, dataset_name), B, labels, classes,  min_max_features)
         return B, classes, labels
 
 
