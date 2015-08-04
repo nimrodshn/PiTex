@@ -1,5 +1,5 @@
 # PiTex
-PiTex is a tool aimed to help Ecologists classify <i>Foraminifera</i> using <i>Machine Learning, Computer Vision</i> and other tools.
+PiTex is a tool aimed to help Ecologists classify <i>Foraminifera</i>  from images obtained by microscope, using <i>Machine Learning, Computer Vision</i> and other tools.
 
 
 Dependencies:
