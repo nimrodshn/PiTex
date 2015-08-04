@@ -57,14 +57,12 @@ def featureExtractorTest():
         
         #dst = cv.GaussianBlur(im,(7,7),0)
 
-
         edges = cv.Canny(dst,40,40)
         plt.subplot(2,2,i+1)
         plt.imshow(edges,cmap = 'gray')
         plt.title('Edge Image')
         plt.xticks([])
         plt.yticks([])
-
         
     plt.show()
 
@@ -127,6 +125,6 @@ if __name__ == '__main__':
     #featureSelectionTest()
     #datasetOrgenizerTest()
     #classifierTest()
-    crossValidateTest()
-    #validateClassifier()
+    #crossValidateTest()
+    validateClassifier()
     #segmentationTest()

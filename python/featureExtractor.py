@@ -16,7 +16,7 @@ class featureExtractor:
 
     def computeFeatureVector(self):
         '''
-        "Computes" the feature vector
+        Computes the feature vector using different featurs.
         :return: a list representing the feature vector to be called by datasetOrginizer to build your dataset.
         '''
 
