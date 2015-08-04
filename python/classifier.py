@@ -155,7 +155,13 @@ class classifier:
 
         cv.waitKey()
 
-    def crossValidation(self,Dataset):
+    def crossValidateGridSearch(self,Dataset):
+        '''
+        :param Dataset: The dataset used to create the model.
+        This function is used to cross validate the model using Grid Search Method.
+        :return:
+        '''        
+
         npzfile = np.load(Dataset)
         trainingData = npzfile['arr_0']
         labels = npzfile['arr_1']

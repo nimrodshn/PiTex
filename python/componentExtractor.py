@@ -12,7 +12,6 @@ class componentExtractor:
     def __init__(self, inputImage):
         '''
         :param inputImage:
-        :return: Constructor for the Main image processing and segmentation class.
         '''
         self._image = inputImage
 
@@ -20,7 +19,7 @@ class componentExtractor:
 
     def extractComponents(self):
         '''
-        Main image processing and segmentation class
+        Main image processing and segmentation class, uses a simple image processing technique followed by otsu threshold to gather connected components.
         returns: a list of connected-components, these are the obto be fed to the positive-negative decomposition classifier.
         '''
 

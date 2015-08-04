@@ -74,10 +74,7 @@ def datasetOrgenizerTest():
     ds = datasetOrginizer()
     path_list = ["../data/training2/negative","../data/training2/positive"]
     class_list = ["negative","positive"]
-    training, classes , labels = ds.createTrainingFromDataset("test4",class_list,path_list)
-
-    X = training
-    y = classes
+    ds.createTrainingFromDataset("test4",class_list,path_list)
 
 def CNNTest():
     data = load_digits()
@@ -118,7 +115,7 @@ def validateClassifier():
     cl.validation(test_num,"binData/test4.npz")
     cv.waitKey()
 
-def crossValidationTest():
+def crossValidateTest():
     cl = classifier()
     cl.crossValidation("binData/test4.npz")
 
@@ -130,6 +127,6 @@ if __name__ == '__main__':
     #featureSelectionTest()
     #datasetOrgenizerTest()
     #classifierTest()
-    crossValidationTest()
+    crossValidateTest()
     #validateClassifier()
     #segmentationTest()

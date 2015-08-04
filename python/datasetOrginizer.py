@@ -16,10 +16,11 @@ class datasetOrginizer:
 
     def createTrainingFromDataset(self, dataset_name, labels_list, path_list):
         '''
-        Creates a new training set to work on from given dataset in location: creating Feature Vector, Normalize etc..
-        :param name: the name of the data set
-        :param location: location where the data was collected
-        :return:
+        Creates a new training set to work on from given path list and labels.
+        Notice path_list and path_labels are intended to be lists of the same length. see tests in __main__ for examples.
+        :param dataset_name: the name of the data set
+        :param path_list: a list of pathes frome which the images are collected.
+        :param labels_list: a list of labels to use for the images collected from corresponding path. (i.e. first label correspond to first path in the path list.)
         '''
 
         base_path = "binData/"
@@ -72,6 +73,5 @@ class datasetOrginizer:
 
         ### SAVING THE DATASETS TO NPZ FORMAT
         np.savez(os.path.join(base_path, dataset_name), B, labels, classes,  min_max_features)
-        return B, classes, labels
 
 
