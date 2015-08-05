@@ -12,6 +12,8 @@ from sklearn.decomposition import PCA
 from sklearn.cross_validation import train_test_split
 from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import classification_report
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import chi2
 from sklearn import cross_validation
 from sklearn import metrics
 
@@ -66,10 +68,12 @@ class classifier:
         X = trainingData
         y = classes
 
+        # X_new = SelectKBest(chi2, k=7).fit_transform(X, y)
+
         clf = SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0, degree=3,
             gamma=0.0, kernel='linear', max_iter=-1, probability=False,
             random_state=None, shrinking=True, tol=0.001, verbose=False)        
-        clf.fit(X,y)
+        clf.fit(X_new,y)
 
         fig, axes = plt.subplots(nrows=10, ncols=10)
 
@@ -119,6 +123,8 @@ class classifier:
         labels = npzfile['arr_1']
         classes = npzfile['arr_2']
         max_min_features = npzfile['arr_3']
+
+        X_new = SelectKBest(chi2, k=2).fit_transform(X, y)
 
         X = trainingData
         y = classes

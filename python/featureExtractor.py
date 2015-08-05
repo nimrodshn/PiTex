@@ -20,15 +20,15 @@ class featureExtractor:
         :return: a list representing the feature vector to be called by datasetOrginizer to build your dataset.
         '''
 
-        #morphotype = self.computeMorphtypeNumber()
+        morphotype = self.computeMorphtypeNumber()
 
-        #gray = cv.cvtColor(self.im,cv.COLOR_BGR2GRAY)
+        gray = cv.cvtColor(self.im,cv.COLOR_BGR2GRAY)
 
-        #hist = cv.calcHist(gray, [0], None, [8], [0, 256])
+        hist = cv.calcHist(gray, [0], None, [8], [0, 256])
 
-        #hist = hist.flatten()
+        hist = hist.flatten()
 
-        #hist = hist.tolist()
+        hist = hist.tolist()
 
         haralick = mh.features.haralick(self.im, ignore_zeros=False, preserve_haralick_bug=False, compute_14th_feature=False).flatten()
         
@@ -36,15 +36,15 @@ class featureExtractor:
 
         #size = self.computeSize()
 
-        #shape = self.computeHuShape()
+        shape = self.computeHuShape()
 
         #solidity = self.computeSolidity()
 
         #corners = self.computeGoodFeaturesToTrack().tolist()
 
-        #filters = self.buildGaborfilters()
-        #res = self.processGabor(self.im,filters)
-        #gabor_vector = self.computeMeanAmplitude(res)
+        filters = self.buildGaborfilters()
+        res = self.processGabor(self.im,filters)
+        gabor_vector = self.computeMeanAmplitude(res)
 
         #hog = self.computeHOG()
 
@@ -52,10 +52,8 @@ class featureExtractor:
 
         lbp = lbp.tolist()
 
-        feature_vector = haralick + lbp 
+        feature_vector = haralick + lbp + gabor_vector + hist + shape + [morphotype]
         
-        #feature_vector = gabor_vector + shape + hist
-
         #feature_vector = hist
 
         return feature_vector
