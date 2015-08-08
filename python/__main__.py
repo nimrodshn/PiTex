@@ -76,6 +76,7 @@ def datasetOrgenizerTest():
 
 def CNNTest():
     data = load_digits()
+
     l_in = lasagne.layers.InputLayer((100,50))
     l_hidden = lasagne.layers.DenseLayer(l_in,num_units=200)
     l_out = lasagne.layers.DenseLayer(l_hidden,num_units=10,nonlinearity=T.nnet.softmax)
@@ -97,13 +98,13 @@ def segmentationTest():
     cv.waitKey()
 
 def classifierTest():
-    img = cv.imread("..//Samples//4//PL29II Nov 4-5 0017.tif")
+    img = cv.imread("..//Samples//4//PL29II Nov 4-5 0023.tif")
     cv.namedWindow("Sample",cv.WINDOW_NORMAL)
     cv.imshow("Sample",img)
 
     cl = classifier(img)
     cl.posNegDecompose(Dataset="binData/test4.npz")
-    #cl.plotPCA(Dataset="binData/test4.npz")
+    cl.plotPCA(Dataset="binData/test4.npz")
 
     cv.waitKey()
 
@@ -125,7 +126,7 @@ if __name__ == '__main__':
     #featureSelectionTest()
     
     #datasetOrgenizerTest()
-    #classifierTest()
+    classifierTest()
     #crossValidateTest()
-    validateClassifier()
+    #validateClassifier()
     #segmentationTest()

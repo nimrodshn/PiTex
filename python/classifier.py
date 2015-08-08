@@ -16,6 +16,9 @@ from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
 from sklearn import cross_validation
 from sklearn import metrics
+from lasagne import layers
+from lasagne.updates import nesterov_momentum
+
 
 # TODO:
 # 1. Add cross validation to tune SVM parameters in posNeg Decomposition method.
@@ -40,8 +43,10 @@ class classifier:
 
         print np.shape(X)
 
+        X_new = SelectKBest(chi2, k=30).fit_transform(X, y)
+
         pca = PCA(n_components=2)
-        X_r = pca.fit(X).transform(X)
+        X_r = pca.fit(X_new).transform(X_new)
 
         for c, i, target_name in zip("rgb", [0, 1], ["negative","positive"]):
              plt.scatter(X_r[y == i, 0], X_r[y == i, 1], c=c, label=target_name)
@@ -68,12 +73,10 @@ class classifier:
         X = trainingData
         y = classes
 
-        # X_new = SelectKBest(chi2, k=7).fit_transform(X, y)
-
         clf = SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0, degree=3,
             gamma=0.0, kernel='linear', max_iter=-1, probability=False,
             random_state=None, shrinking=True, tol=0.001, verbose=False)        
-        clf.fit(X_new,y)
+        clf.fit(X,y)
 
         fig, axes = plt.subplots(nrows=10, ncols=10)
 
@@ -85,10 +88,10 @@ class classifier:
             feature_vector = fe.computeFeatureVector()
             # Normalize feature vector
             for k, num in enumerate(feature_vector):
-                max_feature = max_min_features[k][0]
-                min_feature = max_min_features[k][1]
-                feature_vector[k] = (feature_vector[k] - min_feature) / (max_feature - min_feature)
-
+                #max_feature = max_min_features[k][0]
+                #min_feature = max_min_features[k][1]
+                #feature_vector[k] = (feature_vector[k] - min_feature) / (max_feature - min_feature)
+                feature_vector[k] = 1/(1+np.exp(feature_vector[k]))
 
             res = clf.predict(feature_vector)
             print res
@@ -124,8 +127,6 @@ class classifier:
         classes = npzfile['arr_2']
         max_min_features = npzfile['arr_3']
 
-        X_new = SelectKBest(chi2, k=2).fit_transform(X, y)
-
         X = trainingData
         y = classes
 
@@ -144,9 +145,10 @@ class classifier:
             feature_vector = fe.computeFeatureVector()
             # Normalize feature vector
             for k, num in enumerate(feature_vector):
-                max_feature = max_min_features[k][0]
-                min_feature = max_min_features[k][1]
-                feature_vector[k] = (feature_vector[k] - min_feature) / (max_feature - min_feature)
+                #max_feature = max_min_features[k][0]
+                #min_feature = max_min_features[k][1]
+                #feature_vector[k] = (feature_vector[k] - min_feature) / (max_feature - min_feature)
+                feature_vector[k] = 1/(1+np.exp(feature_vector[k]))
 
             res = clf.predict(feature_vector)
             print res
