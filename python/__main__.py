@@ -98,7 +98,7 @@ def segmentationTest():
     cv.waitKey()
 
 def classifierTest():
-    img = cv.imread("..//Samples//slides 11-07-15//A0009.tif")
+    img = cv.imread("..//Samples//slides 11-07-15//A0004.tif")
     cv.namedWindow("Sample",cv.WINDOW_NORMAL)
     cv.imshow("Sample",img)
 
@@ -124,7 +124,7 @@ if __name__ == '__main__':
     #featureExtractorTest()
     #featureSelectionTest()
     #datasetOrgenizerTest()
-    classifierTest()
+    #classifierTest()
     #crossValidateTest()
-    #validateClassifier()
+    validateClassifier()
     #segmentationTest()

@@ -56,7 +56,7 @@ class classifier:
 
         print np.shape(X)
 
-        selector = RFE(clf, 15, step=1)
+        selector = RFE(clf, 20, step=1)
         X_new = selector.fit_transform(X, y)
         
         return X_new, selector.support_
@@ -102,7 +102,7 @@ class classifier:
         X = trainingData
         y = classes
 
-        clf = SVC(C=1, gamma=0.001, kernel='linear')
+        clf = SVC(C=20.0, gamma=0.03, kernel='rbf') 
 
         clf.fit(X,y)
 
@@ -164,7 +164,7 @@ class classifier:
         components = ce.extractComponents() # THIS IS A LIST
 
         ### Model Building 
-        clf = SVC(C=0.1, gamma=0.001, kernel='linear')        
+        clf = SVC(C=20.0, gamma=0.03, kernel='rbf')        
         clf.fit(X_new,y)
 
         for i, component in enumerate(components):
@@ -217,37 +217,33 @@ class classifier:
             X_new, y, test_size=0.5, random_state=0)
 
         # Set the parameters by cross-validation
-        tuned_parameters = [{'kernel': ['rbf', 'linear'], 'gamma': [1e-3, 1e-4,1e-5,1e-6],
-                             'C': [0.000001 ,0.00001 ,0.0001, 0.001, 0.01, 0.1 , 1, 10, 100, 1000]}]
+        tuned_parameters = [{'kernel': ['rbf'], 'gamma': [0.02,0.022,0.024,0.026,0.028,0.03],
+                             'C':[20,22,24,26,28,30,32,34,35] }]
+    
+        print("# Tuning hyper-parameters ")
 
-        scores = ['precision', 'recall']
+        clf = GridSearchCV(SVC(C=1), tuned_parameters)
+        clf.fit(X_train, y_train)
 
-        for score in scores:
-            print("# Tuning hyper-parameters for %s" % score)
+        print("Best parameters set found on development set:")
+        print()
+        print(clf.best_params_)
+        print()
+        print("Grid scores on development set:")
+        print()
+        for params, mean_score, scores in clf.grid_scores_:
+            print("%0.3f (+/-%0.03f) for %r"
+                  % (mean_score, scores.std() * 2, params))
+        print()
 
-            clf = GridSearchCV(SVC(C=1), tuned_parameters, cv=5,
-                               scoring='%s' % score)
-            clf.fit(X_train, y_train)
-
-            print("Best parameters set found on development set:")
-            print()
-            print(clf.best_params_)
-            print()
-            print("Grid scores on development set:")
-            print()
-            for params, mean_score, scores in clf.grid_scores_:
-                print("%0.3f (+/-%0.03f) for %r"
-                      % (mean_score, scores.std() * 2, params))
-            print()
-
-            print("Detailed classification report:")
-            print()
-            print("The model is trained on the full development set.")
-            print("The scores are computed on the full evaluation set.")
-            print()
-            y_true, y_pred = y_test, clf.predict(X_test)
-            print(classification_report(y_true, y_pred))
-            print()
+        print("Detailed classification report:")
+        print()
+        print("The model is trained on the full development set.")
+        print("The scores are computed on the full evaluation set.")
+        print()
+        y_true, y_pred = y_test, clf.predict(X_test)
+        print(classification_report(y_true, y_pred))
+        print()
 
     def classifieSample(self, Dataset='binData/Default.npz'):
         '''
