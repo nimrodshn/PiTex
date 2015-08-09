@@ -56,13 +56,11 @@ class featureExtractor:
 
         return feature_vector
 
-
     ########### FEATURES #################
 
     def computeBrightness(self):
         gray = cv.cvtColor(self.im,cv.COLOR_BGR2GRAY)
         return np.mean(gray)
-
 
     def computeLBP(self):
         gray = cv.cvtColor(self.im,cv.COLOR_BGR2GRAY)

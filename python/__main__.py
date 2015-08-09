@@ -98,14 +98,13 @@ def segmentationTest():
     cv.waitKey()
 
 def classifierTest():
-    img = cv.imread("..//Samples//slides 11-07-15//A0018.tif")
+    img = cv.imread("..//Samples//slides 11-07-15//A0009.tif")
     cv.namedWindow("Sample",cv.WINDOW_NORMAL)
     cv.imshow("Sample",img)
 
     cl = classifier(img)
     cl.posNegDecompose(Dataset="binData/test4.npz")
     #cl.plotPCA(Dataset="binData/test4.npz")
-
     cv.waitKey()
 
 def validateClassifier():

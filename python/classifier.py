@@ -18,6 +18,7 @@ from sklearn import preprocessing
 from sklearn import cross_validation
 from sklearn import metrics
 from lasagne import layers
+from sklearn.feature_selection import RFE
 from lasagne.updates import nesterov_momentum
 
 
@@ -35,10 +36,13 @@ class classifier:
 
     def feature_selection(self,Dataset):
         '''
-         Feature selection function using Filters & univariate selection
+         Feature selection recursive feature elimination with Linear SVM.
         :param Dataset: Path to a given dataset in the format of npz. see datasetOrginizer Class.
-        :return:
+        :return: 
+            a. The mask of 15 top features.
+            b. The transformed training matrix
         '''
+        
         npzfile = np.load(Dataset)
         trainingData = npzfile['arr_0']
         labels = npzfile['arr_1']
@@ -47,16 +51,15 @@ class classifier:
 
         X = trainingData
         y = classes
-        columns = np.shape(X)[1]
-        print columns
+        
+        clf = SVC(C=1, gamma=0.001, kernel='linear')       
+
         print np.shape(X)
 
-        #fig, axes = plt.subplots(nrows=50, ncols=50)
-
-        for i in range(columns):
-            
-            X_new = np.delete(X,i,1) # discard feature i
-            print np.shape(X_new)
+        selector = RFE(clf, 15, step=1)
+        X_new = selector.fit_transform(X, y)
+        
+        return X_new, selector.support_
 
     def plotPCA(self,Dataset):
 
@@ -66,16 +69,13 @@ class classifier:
         classes = npzfile['arr_2']
         max_min_features = npzfile['arr_3']
 
-
         X = trainingData
         y = classes
 
         print np.shape(X)
 
-        X_new = SelectKBest(chi2, k=10).fit_transform(X, y)
-
         pca = PCA(n_components=2)
-        X_r = pca.fit(X_new).transform(X_new)
+        X_r = pca.fit(X).transform(X)
 
         for c, i, target_name in zip("rgb", [0, 1], ["negative","positive"]):
              plt.scatter(X_r[y == i, 0], X_r[y == i, 1], c=c, label=target_name)
@@ -157,26 +157,31 @@ class classifier:
         X = trainingData
         y = classes
 
-        print np.shape(X)
+        X_new, features_list = self.feature_selection("binData/test4.npz")
 
         ### Segmentation
         ce = componentExtractor(self._image)
         components = ce.extractComponents() # THIS IS A LIST
 
         ### Model Building 
-        clf = SVC(C=1, gamma=0.001, kernel='linear')        
-        clf.fit(X,y)
+        clf = SVC(C=0.1, gamma=0.001, kernel='linear')        
+        clf.fit(X_new,y)
 
         for i, component in enumerate(components):
             fe = featureExtractor(component[0])
             feature_vector = fe.computeFeatureVector()
-            # Normalize feature vector
+            new_feature_vector = []
+
             for k, num in enumerate(feature_vector):
-                max_feature = max_min_features[k][0]
-                min_feature = max_min_features[k][1]
-                feature_vector[k] = (feature_vector[k] - min_feature) / (max_feature - min_feature)
-            
-            res = clf.predict(feature_vector)
+                if (features_list[k] == True):
+                     # Normalize feature vector
+                    max_feature = max_min_features[k][0]
+                    min_feature = max_min_features[k][1]
+                    #feature_vector[k] = (feature_vector[k] - min_feature) / (max_feature - min_feature)
+                    new_feature_vector.append((feature_vector[k] - min_feature) / (max_feature - min_feature))
+                
+            print new_feature_vector
+            res = clf.predict(new_feature_vector)
             print res
             
             if res[0] == 1:
@@ -205,9 +210,11 @@ class classifier:
         X = trainingData
         y = classes
 
+        X_new, features_list = self.feature_selection("binData/test4.npz")
+
         # Split the dataset in two equal parts
         X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.5, random_state=0)
+            X_new, y, test_size=0.5, random_state=0)
 
         # Set the parameters by cross-validation
         tuned_parameters = [{'kernel': ['rbf', 'linear'], 'gamma': [1e-3, 1e-4,1e-5,1e-6],
@@ -260,7 +267,6 @@ class classifier:
         ## Segmentation
         ce = componentExtractor(self._image)
         components = ce.extractComponents # THIS IS A LIST
-
 
         for i,component in enumerate(components):
 
