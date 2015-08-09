@@ -32,7 +32,7 @@ def main():
 def featureSelectionTest():
     clf = classifier()
     clf = classifier()
-    clf.plotPCA(Dataset="binData/test4.npz")
+    clf.feature_selection(Dataset="binData/test4.npz")
     #feature_vector = fe.computeFeatureVector()
     #print feature_vector
 
@@ -98,13 +98,13 @@ def segmentationTest():
     cv.waitKey()
 
 def classifierTest():
-    img = cv.imread("..//Samples//4//PL29II Nov 4-5 0023.tif")
+    img = cv.imread("..//Samples//slides 11-07-15//A0018.tif")
     cv.namedWindow("Sample",cv.WINDOW_NORMAL)
     cv.imshow("Sample",img)
 
     cl = classifier(img)
     cl.posNegDecompose(Dataset="binData/test4.npz")
-    cl.plotPCA(Dataset="binData/test4.npz")
+    #cl.plotPCA(Dataset="binData/test4.npz")
 
     cv.waitKey()
 
@@ -116,7 +116,7 @@ def validateClassifier():
 
 def crossValidateTest():
     cl = classifier()
-    cl.crossValidation("binData/test4.npz")
+    cl.crossValidateGridSearch("binData/test4.npz")
 
 if __name__ == '__main__':
     #main()
@@ -124,7 +124,6 @@ if __name__ == '__main__':
     #CNNTest()
     #featureExtractorTest()
     #featureSelectionTest()
-    
     #datasetOrgenizerTest()
     classifierTest()
     #crossValidateTest()

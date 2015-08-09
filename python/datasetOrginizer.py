@@ -66,9 +66,8 @@ class datasetOrginizer:
             min_max_features.append((max_feature,min_feature)) # Keep max & min entrys of feature map for normalization purposes.    
             
             for i in range(num_rows):
-                #B[i,j] = (B[i,j] - min_feature) / (max_feature - min_feature)
-                B[i,j] = 1/(1+np.exp(B[i,j])) 
-
+                B[i,j] = (B[i,j] - min_feature) / (max_feature - min_feature)
+               
 
         ### DEBUG 
         print np.shape(trainingData)

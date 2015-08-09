@@ -14,6 +14,7 @@ from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import classification_report
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
+from sklearn import preprocessing
 from sklearn import cross_validation
 from sklearn import metrics
 from lasagne import layers
@@ -32,18 +33,46 @@ class classifier:
         self.X = None
         self.y = None
 
-    def plotPCA(self,Dataset):
+    def feature_selection(self,Dataset):
+        '''
+         Feature selection function using Filters & univariate selection
+        :param Dataset: Path to a given dataset in the format of npz. see datasetOrginizer Class.
+        :return:
+        '''
         npzfile = np.load(Dataset)
         trainingData = npzfile['arr_0']
         labels = npzfile['arr_1']
         classes = npzfile['arr_2']
+        max_min_features = npzfile['arr_3']
+
+        X = trainingData
+        y = classes
+        columns = np.shape(X)[1]
+        print columns
+        print np.shape(X)
+
+        #fig, axes = plt.subplots(nrows=50, ncols=50)
+
+        for i in range(columns):
+            
+            X_new = np.delete(X,i,1) # discard feature i
+            print np.shape(X_new)
+
+    def plotPCA(self,Dataset):
+
+        npzfile = np.load(Dataset)
+        trainingData = npzfile['arr_0']
+        labels = npzfile['arr_1']
+        classes = npzfile['arr_2']
+        max_min_features = npzfile['arr_3']
+
 
         X = trainingData
         y = classes
 
         print np.shape(X)
 
-        X_new = SelectKBest(chi2, k=30).fit_transform(X, y)
+        X_new = SelectKBest(chi2, k=10).fit_transform(X, y)
 
         pca = PCA(n_components=2)
         X_r = pca.fit(X_new).transform(X_new)
@@ -73,9 +102,8 @@ class classifier:
         X = trainingData
         y = classes
 
-        clf = SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0, degree=3,
-            gamma=0.0, kernel='linear', max_iter=-1, probability=False,
-            random_state=None, shrinking=True, tol=0.001, verbose=False)        
+        clf = SVC(C=1, gamma=0.001, kernel='linear')
+
         clf.fit(X,y)
 
         fig, axes = plt.subplots(nrows=10, ncols=10)
@@ -88,11 +116,10 @@ class classifier:
             feature_vector = fe.computeFeatureVector()
             # Normalize feature vector
             for k, num in enumerate(feature_vector):
-                #max_feature = max_min_features[k][0]
-                #min_feature = max_min_features[k][1]
-                #feature_vector[k] = (feature_vector[k] - min_feature) / (max_feature - min_feature)
-                feature_vector[k] = 1/(1+np.exp(feature_vector[k]))
-
+                max_feature = max_min_features[k][0]
+                min_feature = max_min_features[k][1]
+                feature_vector[k] = (feature_vector[k] - min_feature) / (max_feature - min_feature)
+               
             res = clf.predict(feature_vector)
             print res
 
@@ -130,14 +157,14 @@ class classifier:
         X = trainingData
         y = classes
 
+        print np.shape(X)
+
         ### Segmentation
         ce = componentExtractor(self._image)
         components = ce.extractComponents() # THIS IS A LIST
 
         ### Model Building 
-        clf = SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0, degree=3,
-            gamma=0.0, kernel='linear', max_iter=-1, probability=False,
-            random_state=None, shrinking=True, tol=0.001, verbose=False)        
+        clf = SVC(C=1, gamma=0.001, kernel='linear')        
         clf.fit(X,y)
 
         for i, component in enumerate(components):
@@ -145,11 +172,10 @@ class classifier:
             feature_vector = fe.computeFeatureVector()
             # Normalize feature vector
             for k, num in enumerate(feature_vector):
-                #max_feature = max_min_features[k][0]
-                #min_feature = max_min_features[k][1]
-                #feature_vector[k] = (feature_vector[k] - min_feature) / (max_feature - min_feature)
-                feature_vector[k] = 1/(1+np.exp(feature_vector[k]))
-
+                max_feature = max_min_features[k][0]
+                min_feature = max_min_features[k][1]
+                feature_vector[k] = (feature_vector[k] - min_feature) / (max_feature - min_feature)
+            
             res = clf.predict(feature_vector)
             print res
             
@@ -184,9 +210,8 @@ class classifier:
             X, y, test_size=0.5, random_state=0)
 
         # Set the parameters by cross-validation
-        tuned_parameters = [{'kernel': ['rbf'], 'gamma': [1e-3, 1e-4],
-                             'C': [1, 10, 100, 1000]},
-                            {'kernel': ['linear'], 'C': [1, 10, 100, 1000]}]
+        tuned_parameters = [{'kernel': ['rbf', 'linear'], 'gamma': [1e-3, 1e-4,1e-5,1e-6],
+                             'C': [0.000001 ,0.00001 ,0.0001, 0.001, 0.01, 0.1 , 1, 10, 100, 1000]}]
 
         scores = ['precision', 'recall']
 
