@@ -102,20 +102,21 @@ def classifierTest():
     cv.namedWindow("Sample",cv.WINDOW_NORMAL)
     cv.imshow("Sample",img)
 
-    cl = classifier(img)
-    cl.posNegDecompose(Dataset="binData/test4.npz")
-    #cl.plotPCA(Dataset="binData/test4.npz")
+    cl = classifier(inputImage=img,Dataset="binData/test4.npz")
+    cl.posNegDecompose()
+    cl.plotPCA()
     cv.waitKey()
 
 def validateClassifier():
     test_num =  random.sample(range(1, 203), 100)
-    cl = classifier()
-    cl.validation(test_num,"binData/test4.npz")
+    cl = classifier(Dataset="binData/test4.npz")
+    cl.validation(test_num)
     cv.waitKey()
 
 def crossValidateTest():
-    cl = classifier()
-    cl.crossValidateGridSearch("binData/test4.npz")
+    cl = classifier(Dataset="binData/test4.npz")
+    cl.plotPCA()
+    cl.crossValidateGridSearch()
 
 if __name__ == '__main__':
     #main()

@@ -20,7 +20,7 @@ class featureExtractor:
         :return: a list representing the feature vector to be called by datasetOrginizer to build your dataset.
         '''
 
-        # morphotype = self.computeMorphtypeNumber()
+        morphotype = self.computeMorphtypeNumber()
 
         # gray = cv.cvtColor(self.im,cv.COLOR_BGR2GRAY)
 
@@ -36,15 +36,15 @@ class featureExtractor:
 
         #size = self.computeSize()
 
-        #shape = self.computeHuShape()
+        shape = self.computeHuShape()
 
         #solidity = self.computeSolidity()
 
         #corners = self.computeGoodFeaturesToTrack()
 
-        # filters = self.buildGaborfilters()
-        # res = self.processGabor(self.im,filters)
-        # gabor_vector = self.computeMeanAmplitude(res)
+        filters = self.buildGaborfilters()
+        res = self.processGabor(self.im,filters)
+        gabor_vector = self.computeMeanAmplitude(res)
 
         #hog = self.computeHOG()
 
@@ -52,7 +52,7 @@ class featureExtractor:
 
         lbp = lbp.tolist()
 
-        feature_vector =  lbp + haralick
+        feature_vector =  lbp + haralick + gabor_vector + shape + [morphotype]
 
         return feature_vector
 
@@ -161,7 +161,7 @@ class featureExtractor:
             #print sum
             feature_vector.append(sum)
 
-        print feature_vector
+        #print feature_vector
         #cv.waitKey()
         return feature_vector
 
