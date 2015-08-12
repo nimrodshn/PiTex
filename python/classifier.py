@@ -46,6 +46,7 @@ class classifier:
         self.max_min_features = npzfile['arr_3']
         
         self.X, self.features_list = self.feature_selection(trainingData,classes)
+        #self.X = trainingData
         self.y = classes
         
     def feature_selection(self,X,y):
@@ -62,11 +63,11 @@ class classifier:
         print np.shape(X)
 
         svc = SVC(kernel='linear')       
-        #selector = RFECV(estimator=svc, step=1, cv=StratifiedKFold(y, 2),
-        #       scoring='accuracy')
+        selector = RFECV(estimator=svc, step=1, cv=StratifiedKFold(y, 4),
+               scoring='f1')
 
         #selector = RFE(svc, 10, step=1)
-        selector = SelectKBest(chi2, k=20)
+        #selector = SelectKBest(chi2, k=5)
         #selector = SelectPercentile(chi2, percentile=10)
         X_new = selector.fit_transform(X, y)
         
@@ -93,7 +94,7 @@ class classifier:
         :param val_images: the numbers of the images. to be picked randomly.
         '''
 
-        clf = SVC(C=10, gamma=0.05, kernel='rbf') 
+        clf = SVC(C=4, gamma=0.5, kernel='rbf') 
 
         clf.fit(self.X,self.y)
 
@@ -147,7 +148,7 @@ class classifier:
         components = ce.extractComponents() # THIS IS A LIST
 
         ### Model Building 
-        clf = SVC(C=8 , gamma=0.1, kernel='rbf')        
+        clf = SVC(C=2 , gamma=0.2, kernel='rbf')        
         clf.fit(self.X,self.y)
 
         for i, component in enumerate(components):

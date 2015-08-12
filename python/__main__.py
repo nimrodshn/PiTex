@@ -69,6 +69,7 @@ def featureExtractorTest():
     cv.waitKey()
 
 def datasetOrgenizerTest():
+    
     ds = datasetOrginizer()
     path_list = ["../data/training2/negative","../data/training2/positive"]
     class_list = ["negative","positive"]
@@ -98,13 +99,13 @@ def segmentationTest():
     cv.waitKey()
 
 def classifierTest():
-    img = cv.imread("..//Samples//slides 11-07-15//A0004.tif")
+    img = cv.imread("..//Samples//slides//A0004.tif")
     cv.namedWindow("Sample",cv.WINDOW_NORMAL)
     cv.imshow("Sample",img)
 
     cl = classifier(inputImage=img,Dataset="binData/test4.npz")
     cl.posNegDecompose()
-    cl.plotPCA()
+    #cl.plotPCA()
     cv.waitKey()
 
 def validateClassifier():
@@ -125,7 +126,7 @@ if __name__ == '__main__':
     #featureExtractorTest()
     #featureSelectionTest()
     #datasetOrgenizerTest()
-    #classifierTest()
+    classifierTest()
     #crossValidateTest()
-    validateClassifier()
+    #validateClassifier()
     #segmentationTest()
