@@ -43,9 +43,6 @@ class componentExtractor:
 
         ret, thresh = cv2.threshold(imgray,0,255,cv2.THRESH_OTSU)
 
-        cv2.namedWindow("thresh",cv2.WINDOW_NORMAL)
-        cv2.imshow("thresh",thresh)
-
         contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         im = cv2.cvtColor(imgray,cv2.COLOR_GRAY2BGR)
         for i,contour in enumerate(contours):
@@ -59,6 +56,7 @@ class componentExtractor:
                 components.append((c,rect))
                 cv2.drawContours(im, contours, i, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), -1)
 
+        
         ############### Debug ##################
 
         cv2.namedWindow("contours", cv2.WINDOW_NORMAL)

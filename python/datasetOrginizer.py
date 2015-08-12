@@ -2,6 +2,7 @@ __author__ = 'Nimrod Shneor'
 import numpy as np
 import os
 import cv2 as cv
+import random
 from componentExtractor import componentExtractor
 from featureExtractor import featureExtractor
 
@@ -16,46 +17,46 @@ class datasetOrginizer:
        self._dataSets.append(defaultSet)
 
 
-    def splitData(data_path,training_path,test_path):
+    def splitData(self,data_path,training_path,test_path):
         '''
         split data in path into training-set and test-set.
         param data_path: the path where that data collected is found.
         paran training_path: the path where that training set is saved.
         param test_set: the path where that test set is saved.
         '''
-        numofdata = len(os.listdir(path))
+        numofdata = len(os.listdir(data_path))
+        print numofdata
         #pick 100 test images at random
         test_num = random.sample(range(1, numofdata), 100) 
         A = np.zeros(numofdata)        
         for k in range(100):
             A[test_num[k]] = 1 
-
         # create training set and test set
         training_set = []
         test_set = []
-        for i, item in enumerate(os.listdir(path)):
-            p = path + "/" + item
+        for i, item in enumerate(os.listdir(data_path)):
+            p = data_path + "/" + item
             print p # DEBUG
-            if A[i] == 1
-                test_set.append(path + "/" + item)   
+            if A[i] == 1:
+                test_set.append(data_path + "/" + item)  
             else:
-                training_set.append(path + "/" + item)
+                training_set.append(data_path + "/" + item)
 
         for i, path in enumerate(training_set):
-            im = cv.imread(p)
+            im = cv.imread(path)
             ce = componentExtractor(im)
+            cv.imwrite("../data/training2/" + str(i)+ ".jpg", im)
             components = ce.extractComponents() 
-
-            for i, component in enumerate(components):
-                cv2.imwrite(training_path + "/" + str(i)+ ".jpg", component[0])
+            for k, component in enumerate(components):
+               cv.imwrite(training_path + "/" + str(i) + str(k)+ ".jpg", component[0])
 
         for i, path in enumerate(test_set):
-            im = cv.imread(p)
+            im = cv.imread(path)
             ce = componentExtractor(im)
-            components = ce.extractComponents() 
-            
-            for i, component in enumerate(components):
-                cv2.imwrite(test_path + "/" + str(i)+ ".jpg", component[0])
+            cv.imwrite("../data/test2/" + str(i)+ ".jpg", im)
+            components = ce.extractComponents()      
+            for k, component in enumerate(components):
+               cv.imwrite(test_path + "/" + str(i) + str(k) + ".jpg", component[0])
 
 
     def createTrainingFromDataset(self, dataset_name, labels_list, path_list):

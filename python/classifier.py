@@ -146,7 +146,7 @@ class classifier:
         ### Segmentation
         ce = componentExtractor(self._image)
         components = ce.extractComponents() # THIS IS A LIST
-
+        
         ### Model Building 
         clf = SVC(C=2 , gamma=0.2, kernel='rbf')        
         clf.fit(self.X,self.y)

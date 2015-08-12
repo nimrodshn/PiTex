@@ -71,9 +71,14 @@ def featureExtractorTest():
 def datasetOrgenizerTest():
     
     ds = datasetOrginizer()
-    path_list = ["../data/training2/negative","../data/training2/positive"]
-    class_list = ["negative","positive"]
-    ds.createTrainingFromDataset("test4",class_list,path_list)
+    #path_list = ["../data/training2/negative","../data/training2/positive"]
+    #class_list = ["negative","positive"]
+    #ds.createTrainingFromDataset("test4",class_list,path_list)
+    data_path = "../Samples/slides"
+    training_path = "../data/training1"
+    test_path = "../data/test1"
+    ds.splitData(data_path,training_path,test_path)
+
 
 def CNNTest():
     data = load_digits()
@@ -94,8 +99,14 @@ def csvTest():
         writer.writerow(['Spam', 'Lovely Spam', 'Wonderful Spam'])
 
 def segmentationTest():
+    im = cv.imread("..//Samples//slides//PL29II Nov 4-5 0134.tif")    
+    cv.namedWindow("..//Samples//slides//PL29II Nov 4-5 0134.tif",cv.WINDOW_NORMAL)
+    cv.imshow("..//Samples//slides//PL29II Nov 4-5 0134.tif",im)
     ce = componentExtractor(im)
     components = ce.extractComponents()
+    for i, component in enumerate(components):
+        cv.namedWindow(str(i),cv.WINDOW_NORMAL)
+        cv.imshow(str(i),component[0])
     cv.waitKey()
 
 def classifierTest():
@@ -125,8 +136,8 @@ if __name__ == '__main__':
     #CNNTest()
     #featureExtractorTest()
     #featureSelectionTest()
-    #datasetOrgenizerTest()
-    classifierTest()
+    datasetOrgenizerTest()
+    #classifierTest()
     #crossValidateTest()
     #validateClassifier()
     #segmentationTest()
