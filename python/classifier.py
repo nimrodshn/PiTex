@@ -1,9 +1,12 @@
 __author__ = 'Nimrod Shneor'
 
+import os
+import random
 import cv2 as cv
 from componentExtractor import componentExtractor
 import numpy as np
 from sklearn.svm import SVC
+from sklearn.svm import SVR
 import csv
 from featureExtractor import featureExtractor
 import matplotlib.pyplot as plt
@@ -31,7 +34,7 @@ from lasagne.updates import nesterov_momentum
 
 class classifier:
 
-    def __init__(self, Dataset, inputImage = None):
+    def __init__(self, Dataset, regression, inputImage = None):
         '''
         :param 
         a. Dataset: Path to a given training dataset in the format of npz. (see datasetOrginizer Class.)
@@ -45,9 +48,17 @@ class classifier:
         self._image = inputImage
         self.max_min_features = npzfile['arr_3']
         
-        self.X, self.features_list = self.feature_selection(trainingData,classes)
-        #self.X = trainingData
-        self.y = classes
+        print "training matrix size: " 
+        print np.shape(trainingData)
+        print "min_max feature array size: "
+        print np.shape(self.max_min_features)
+        
+        if (regression == False):
+            self.X, self.features_list = self.feature_selection(trainingData,classes)
+        else:
+            self.X = trainingData
+        
+        self.y = labels
         
     def feature_selection(self,X,y):
         '''
@@ -62,13 +73,13 @@ class classifier:
 
         print np.shape(X)
 
-        svc = SVC(kernel='linear')       
-        selector = RFECV(estimator=svc, step=1, cv=StratifiedKFold(y, 4),
-               scoring='f1')
+        #svc = SVC(kernel='linear')       
+        #selector = RFECV(estimator=svc, step=1, cv=StratifiedKFold(y, 4),
+        #       scoring='f1')
 
         #selector = RFE(svc, 10, step=1)
-        #selector = SelectKBest(chi2, k=5)
-        #selector = SelectPercentile(chi2, percentile=10)
+        #selector = SelectKBest(chi2, k=10)
+        selector = SelectPercentile(chi2, percentile=10)
         X_new = selector.fit_transform(X, y)
         
         return X_new, selector.get_support()
@@ -88,50 +99,94 @@ class classifier:
         plt.yticks([])
         plt.show()
 
-    def validation(self, val_images):
+    def regressionValidation(self):
         '''
-        Main Validation function to validate model on
+        Main Regression Validation function to validate model on
         :param val_images: the numbers of the images. to be picked randomly.
         '''
 
-        clf = SVC(C=4, gamma=0.5, kernel='rbf') 
+        test_path = '../data/test2'
+        clf = SVR(C=10.0,gamma=4,kernel='rbf')
 
         clf.fit(self.X,self.y)
 
-        fig, axes = plt.subplots(nrows=10, ncols=10)
-
-        test_set = val_images
-        for i,num in enumerate(test_set):
-            #print num
-            im = cv.imread("..//Samples//Validation_Set//" + str(num) + ".jpg")
+        for i, item in enumerate(os.listdir(test_path)):
+    
+            im = cv.imread(test_path + "/" + item)
             fe = featureExtractor(im)
             feature_vector = fe.computeFeatureVector()
             new_feature_vector = []
 
             for k, num in enumerate(feature_vector):
-                 if (self.features_list[k] == True):
-                     # Normalize feature vector
-                    max_feature = self.max_min_features[k][0]
-                    min_feature = self.max_min_features[k][1]
-                    new_feature_vector.append((feature_vector[k] - min_feature) / (max_feature - min_feature))
-               
+                max_feature = self.max_min_features[k][0]
+                min_feature = self.max_min_features[k][1]
+                new_feature_vector.append((feature_vector[k] - min_feature) / (max_feature - min_feature))
+           
             res = clf.predict(new_feature_vector)
-            print res
+            
+            print "number of forams in image " + item + " is: " + str(res)
 
-            plt.subplot(10,10,i)
-            plt.imshow(im)
-            plt.xticks([])
-            plt.yticks([])
+            #cv.namedWindow(str(res),cv.WINDOW_NORMAL)
+            #cv.imshow(str(res),im)    
 
-            if res[0] == 1:
-                plt.title('positive')
-                # cv.namedWindow("positive" + str(num),cv.WINDOW_NORMAL)
-                # cv.imshow("positive" + str(num),im)
-            else:
-                plt.title('negative')
-                # cv.namedWindow("negative" + str(num),cv.WINDOW_NORMAL)
-                # cv.imshow("negative" + str(num),im)
-        
+    def classificationValidation(self):
+        '''
+        Main Validation function to validate model on
+        :param val_images: the numbers of the images. to be picked randomly.
+        '''
+
+        test_path = '../data/test1'
+        numofdata = len(os.listdir(test_path))
+        #pick 100 test images at random
+        test_num = random.sample(range(1, numofdata), 100) 
+        A = np.zeros(numofdata)        
+        for k in range(100):
+            A[test_num[k]] = 1 
+
+        #clf = SVC(C=0.1, gamma=0.01, kernel='rbf') 
+        clf = SVR(C=1.0,gamma=0.01,kernel='rbf')
+
+        clf.fit(self.X,self.y)
+
+        fig, axes = plt.subplots(nrows=10, ncols=10)
+
+        counter = 0;
+
+        for i, item in enumerate(os.listdir(test_path)):
+            #print num
+            if A[i] == 1:
+
+                im = cv.imread(test_path + "/" + item)
+                fe = featureExtractor(im)
+                feature_vector = fe.computeFeatureVector()
+                new_feature_vector = []
+
+                for k, num in enumerate(feature_vector):
+                     if (self.features_list[k] == True):
+                         # Normalize feature vector
+                        max_feature = self.max_min_features[k][0]
+                        min_feature = self.max_min_features[k][1]
+                        new_feature_vector.append((feature_vector[k] - min_feature) / (max_feature - min_feature))
+                   
+                res = clf.predict(new_feature_vector)
+                print res
+
+                plt.subplot(10,10,counter)
+                plt.imshow(im)
+                plt.xticks([])
+                plt.yticks([])
+
+                if res[0] == 1:
+                    #plt.title('positive')
+                     cv.namedWindow("positive" + str(counter),cv.WINDOW_NORMAL)
+                     cv.imshow("positive" + str(counter),im)
+                else:
+                    #plt.title('negative')
+                     cv.namedWindow("negative" + str(counter),cv.WINDOW_NORMAL)
+                     cv.imshow("negative" + str(counter),im)
+                
+                counter = counter+1
+            
         fig.subplots_adjust(hspace=.5)
         
         plt.show()    
@@ -181,46 +236,72 @@ class classifier:
         This function is used to cross validate the model using Grid Search Method.
         :return:
         '''        
-        # Split the dataset in two equal parts
+        #Split the dataset in two equal parts
         X_train, X_test, y_train, y_test = train_test_split(
-            self.X, self.y, test_size=0.5, random_state=0)
+          self.X, self.y, test_size=0.5, random_state=0)
 
-        # Set the parameters by cross-validation
-        tuned_parameters = [{'kernel': ['rbf'], 'gamma':[1,0.8,0.5,0.2,0.1,0.05,0.02,0.01] ,
-                             'C':[1,2,4,6,8,10,20,50] }]
+        # the parameters by cross-validation
+        tuned_parameters = [{'kernel': ['rbf'], 'gamma':[0.01, 0.1, 1, 10, 100] ,
+                            'C':[0.1 ,1, 10 ,100, 1000]}]
         
                             # [1e2,1e1,1e0,1e-1,1e-2,1e-3,1e-4,1e-6,1e-8,1e-10]
                             # [1e-5,1e-4,1e-2,1e-1,1e0,1e1,1e2,1e3,1e4]
 
-        scores = ['f1']
+                
+        print("# Tuning hyper-parameters")
+        print()
 
-        for score in scores:
-            print("# Tuning hyper-parameters for %s" % score)
-            print()
+        clf = GridSearchCV(SVC(C=1), tuned_parameters, cv=5,
+                           scoring='accuracy')
+        
+        clf.fit(X_train, y_train)
 
-            clf = GridSearchCV(SVC(C=1), tuned_parameters, cv=5,
-                               scoring=score)
-            clf.fit(X_train, y_train)
+        # look at the results
+        print("Best parameters set found on development set:")
+        print()
+        print(clf.best_params_)
+        print()
+        print("Grid scores on development set:")
+        print()
+        for params, mean_score, scores in clf.grid_scores_:
+            print("%0.3f (+/-%0.03f) for %r"
+                  % (mean_score, scores.std() * 2, params))
+        print()
 
-            print("Best parameters set found on development set:")
-            print()
-            print(clf.best_params_)
-            print()
-            print("Grid scores on development set:")
-            print()
-            for params, mean_score, scores in clf.grid_scores_:
-                print("%0.3f (+/-%0.03f) for %r"
-                      % (mean_score, scores.std() * 2, params))
-            print()
+        print("Detailed classification report:")
+        print()
+        print("The model is trained on the full development set.")
+        print("The scores are computed on the full evaluation set.")
+        print()
+        y_true, y_pred = y_test, clf.predict(X_test)
+        print(classification_report(y_true, y_pred))
+        print()
 
-            print("Detailed classification report:")
-            print()
-            print("The model is trained on the full development set.")
-            print("The scores are computed on the full evaluation set.")
-            print()
-            y_true, y_pred = y_test, clf.predict(X_test)
-            print(classification_report(y_true, y_pred))
-            print()
+    def regressionCrossValidation(self):
+        tuned_parameters={"C": [1e-5,1e-4,1e-3,1e-2,1e-1,1e0, 1e1, 1e2, 1e3],
+                            "gamma": np.logspace(-10, 10),
+                            "epsilon":[0.01,0.1,1,10]}
+        
+        print("# Tuning hyper-parameters")
+        print()
+
+        clf = GridSearchCV(SVR(kernel='rbf', gamma=0.1),tuned_parameters, cv=5,
+                           scoring='mean_squared_error')
+        
+        clf.fit(self.X, self.y)
+
+        # look at the results
+        print("Best parameters set found on development set:")
+        print()
+        print(clf.best_params_)
+        print()
+        print("Grid scores on development set:")
+        print()
+        for params, mean_score, scores in clf.grid_scores_:
+            print("%0.3f (+/-%0.03f) for %r"
+                  % (mean_score, scores.std() * 2, params))
+        print()
+
 
     def classifieSample(self):
         '''
@@ -233,7 +314,7 @@ class classifier:
         components = ce.extractComponents # THIS IS A LIST
 
         for i,component in enumerate(components):
-
+            
             fe = featureExtractor(component[i])
             morphoType = fe.computeMorphtypeNumber(components[i])
             filters = fe.buildGaborfilters()

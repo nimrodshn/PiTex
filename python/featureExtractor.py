@@ -4,6 +4,8 @@ import cv2 as cv
 import numpy as np
 import mahotas as mh
 from skimage.feature import local_binary_pattern
+import matplotlib.pyplot as plt
+
 
 # TODO: 
 # 1. Add feature learning.
@@ -20,7 +22,7 @@ class featureExtractor:
         :return: a list representing the feature vector to be called by datasetOrginizer to build your dataset.
         '''
 
-        morphotype = self.computeMorphtypeNumber()
+        # morphotype = self.computeMorphtypeNumber()
 
         # gray = cv.cvtColor(self.im,cv.COLOR_BGR2GRAY)
 
@@ -30,29 +32,33 @@ class featureExtractor:
 
         # hist = hist.tolist()
 
-        haralick = mh.features.haralick(self.im, ignore_zeros=False, preserve_haralick_bug=False, compute_14th_feature=False).flatten()
+        # haralick = mh.features.haralick(self.im, ignore_zeros=False, preserve_haralick_bug=False, compute_14th_feature=False).flatten()
         
-        haralick = haralick.tolist()
+        # haralick = haralick.tolist()
 
         #size = self.computeSize()
 
-        shape = self.computeHuShape()
+        # shape = self.computeHuShape()
 
         #solidity = self.computeSolidity()
 
         #corners = self.computeGoodFeaturesToTrack()
 
-        filters = self.buildGaborfilters()
-        res = self.processGabor(self.im,filters)
-        gabor_vector = self.computeMeanAmplitude(res)
+        # filters = self.buildGaborfilters()
+        # res = self.processGabor(self.im,filters)
+        # gabor_vector = self.computeMeanAmplitude(res)
 
         #hog = self.computeHOG()
 
-        lbp = self.computeLBP().flatten() 
+        #lbp = self.computeLBP().flatten() 
 
-        lbp = lbp.tolist()
+        #lbp = lbp.tolist()
 
-        feature_vector =  lbp + haralick + gabor_vector + shape + [morphotype]
+        #feature_vector =  lbp + haralick + gabor_vector + shape + [morphotype]
+
+        dense = self.computeDenseSIFTfeatures()
+
+        feature_vector = dense
 
         return feature_vector
 
@@ -131,7 +137,7 @@ class featureExtractor:
         filters = []
         ksize = 30
         for theta in np.arange(0, np.pi, np.pi / 8):
-            params = {'ksize':(ksize, ksize), 'sigma':10, 'theta':theta, 'lambd':15.0,
+            params = {'ksize':(ksize, ksize), 'sigma':8, 'theta':theta, 'lambd':15.0,
                       'gamma':0.00, 'psi':0, 'ktype':cv.CV_32F}
             kern = cv.getGaborKernel(**params)
             kern /= 1.5*kern.sum()
@@ -147,13 +153,12 @@ class featureExtractor:
             results.append(fimg)
         return results
 
-
     def computeMeanAmplitude(self,results):
         feature_vector = []
         for i, result in enumerate(results):
-            #cv.namedWindow("result"+str(i),cv.WINDOW_NORMAL)
-            #cv.imshow("result"+str(i), results[i])
-
+            cv.namedWindow("result"+str(i),cv.WINDOW_NORMAL)
+            cv.imshow("result"+str(i), results[i])
+            
             ## Computing Mean Amplitud
             temp = np.array(result)
             temp = np.abs(temp)
@@ -161,7 +166,25 @@ class featureExtractor:
             #print sum
             feature_vector.append(sum)
 
+            feature_vector = feature_vector + hist
+
         #print feature_vector
         #cv.waitKey()
         return feature_vector
 
+    def computeDenseSIFTfeatures(self):
+        sift = cv.SIFT()
+        dense=cv.FeatureDetector_create("Dense")
+        gray = cv.cvtColor(self.im,cv.COLOR_BGR2GRAY)
+        kp=dense.detect(gray)
+        kp,des=sift.compute(gray,kp)
+        
+        #draw = cv.drawKeypoints(gray,kp)
+        #cv.namedWindow("kp", cv.WINDOW_NORMAL)
+        #cv.imshow("kp",draw)
+        #print des
+        
+        feature_vector = np.ravel(des.sum(axis=0))
+        #print feature_vector
+
+        return feature_vector

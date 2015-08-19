@@ -13,7 +13,7 @@ from componentExtractor import componentExtractor
 import matplotlib.pyplot as plt
 from sklearn.svm import SVC
 from sklearn.decomposition import PCA
-import matplotlib.pyplot as pl
+import matplotlib.pyplot as plt
 import lasagne
 import theano.tensor as T
 import numpy as np
@@ -29,12 +29,30 @@ def main():
 
 ########### TESTS ###########
 
-def featureSelectionTest():
-    clf = classifier()
-    clf = classifier()
-    clf.feature_selection(Dataset="binData/test4.npz")
-    #feature_vector = fe.computeFeatureVector()
-    #print feature_vector
+def DensityTest():
+    img = cv.imread("..//Samples//slides//A0004.tif")
+    cv.namedWindow("..//Samples//slides//A0004.tif",cv.WINDOW_NORMAL)
+    cv.imshow("..//Samples//slides//A0004.tif",img)
+
+    # fe = featureExtractor(img)
+    # filters = fe.buildGaborfilters()
+    # res = fe.processGabor(img,filters)
+    # gabor_vector = fe.computeMeanAmplitude(res)
+
+    # hist = cv.calcHist(res, [0], None, [256], [0, 256])
+
+    # plt.hist(img.ravel(),256,[0,256]); plt.show()
+
+    # plt.show()
+
+    fe = featureExtractor(img)
+    desc = fe.computeDenseSIFTfeatures()
+    trainingData = []
+    trainingData.append
+    
+    trainingData.append(desc)
+    print np.shape(trainingData)
+    cv.waitKey()
 
 def featureExtractorTest():
     path1 = "../data/training/Default/miliolids/miliolid1.jpg"
@@ -68,12 +86,45 @@ def featureExtractorTest():
 
     cv.waitKey()
 
-def datasetOrgenizerTest():
+def datasetOrgenizerRegressionTest():
     
     ds = datasetOrginizer()
-    #path_list = ["../data/training2/negative","../data/training2/positive"]
-    #class_list = ["negative","positive"]
-    #ds.createTrainingFromDataset("test4",class_list,path_list)
+    
+    path = '../data/training2'
+    
+    labels = [0 , 6, 0, 1, 1, 0, 1, 1, 0, 2,
+            0, 4, 1, 4, 1, 0, 4, 0, 0, 2,
+            1, 1, 2, 1, 2, 1, 6, 3, 0, 0,
+            2, 1, 0, 1, 1, 6, 0, 4, 1, 8,
+            1, 2, 0, 0, 1, 0, 0, 4, 0, 3,
+            2, 2, 2, 0, 2, 4, 0, 6, 1, 1,
+            2, 3, 6, 0, 1, 0, 0, 1, 1, 0,
+            0, 1, 1, 1, 0, 0, 2, 5, 9, 1,
+            1, 0, 0, 1, 1, 1, 1, 1, 5, 0,
+            2, 1, 1, 2, 0, 2, 0, 0, 2, 2,
+            0, 1, 4, 4, 1, 2, 1, 2, 1, 5,
+            0, 2, 0, 0, 5, 0, 1, 4, 2, 3,
+            3, 0, 5, 5, 1, 1, 1, 1, 1, 2,
+            2, 1, 6, 0, 1, 3, 7, 2, 0, 0,
+            0, 1, 0, 4, 0, 2, 4, 1, 3, 0,
+            0, 2, 2 ,5, 1, 1, 3, 0, 5, 1,
+            2, 0, 1, 2, 4, 1, 0, 1 ,1, 0,
+            0, 0, 1 ,1, 0, 0, 2, 5, 1, 1,
+            3, 0, 2]
+
+    print len(labels)
+    
+    ds.createRegressionTrainingFromDataset("test",labels,path)
+
+
+def datasetOrginizerClassificationTest():
+
+    ds = datasetOrginizer()
+    
+    path_list = ["../data/training1/negative","../data/training1/positive"]
+    class_list = ["negative","positive"]
+    ds.createTrainingFromDataset("test",class_list,path_list)
+
     data_path = "../Samples/slides"
     training_path = "../data/training1"
     test_path = "../data/test1"
@@ -82,7 +133,6 @@ def datasetOrgenizerTest():
 
 def CNNTest():
     data = load_digits()
-
     l_in = lasagne.layers.InputLayer((100,50))
     l_hidden = lasagne.layers.DenseLayer(l_in,num_units=200)
     l_out = lasagne.layers.DenseLayer(l_hidden,num_units=10,nonlinearity=T.nnet.softmax)
@@ -114,30 +164,32 @@ def classifierTest():
     cv.namedWindow("Sample",cv.WINDOW_NORMAL)
     cv.imshow("Sample",img)
 
-    cl = classifier(inputImage=img,Dataset="binData/test4.npz")
-    cl.posNegDecompose()
-    #cl.plotPCA()
+    cl = classifier(Dataset="binData/test.npz")
+    #cl.posNegDecompose()
+    cl.plotPCA()
     cv.waitKey()
 
 def validateClassifier():
-    test_num =  random.sample(range(1, 203), 100)
-    cl = classifier(Dataset="binData/test4.npz")
-    cl.validation(test_num)
+    cl = classifier(Dataset="binData/test.npz",regression=True)
+    #cl.validation()
+    cl.regressionValidation()
     cv.waitKey()
 
 def crossValidateTest():
-    cl = classifier(Dataset="binData/test4.npz")
-    cl.plotPCA()
-    cl.crossValidateGridSearch()
+    cl = classifier(Dataset="binData/test.npz",regression=True)
+    #cl.plotPCA()
+    #cl.crossValidateGridSearch()
+    cl.regressionCrossValidation()
 
 if __name__ == '__main__':
     #main()
 
     #CNNTest()
     #featureExtractorTest()
-    #featureSelectionTest()
-    datasetOrgenizerTest()
+    #DensityTest()
+    #datasetOrgenizerRegressionTest()
+    #datasetOrginizerClassificationTest()
     #classifierTest()
-    #crossValidateTest()
+    crossValidateTest()
     #validateClassifier()
     #segmentationTest()

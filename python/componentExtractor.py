@@ -33,7 +33,7 @@ class componentExtractor:
 
         maxIntensity = 255.0 # depends on dtype of image data
 
-        # Parameters for manipulating image data
+        #Parameters for manipulating image data
         phi = 1
         theta = 1
 
@@ -46,7 +46,7 @@ class componentExtractor:
         contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         im = cv2.cvtColor(imgray,cv2.COLOR_GRAY2BGR)
         for i,contour in enumerate(contours):
-            if (cv2.contourArea(contour)>150):
+            if (cv2.contourArea(contour)>250):
 
                 rect = cv2.boundingRect(contours[i])
                 component = cv2.cv.GetSubRect(cv2.cv.fromarray(self._image),rect)
@@ -54,13 +54,13 @@ class componentExtractor:
                 c = np.asanyarray(component)
 
                 components.append((c,rect))
-                cv2.drawContours(im, contours, i, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), -1)
+                #cv2.drawContours(im, contours, i, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), -1)
 
         
         ############### Debug ##################
 
-        cv2.namedWindow("contours", cv2.WINDOW_NORMAL)
-        cv2.imshow("contours", im)
+        #cv2.namedWindow("contours", cv2.WINDOW_NORMAL)
+        #cv2.imshow("contours", im)
 
         return components
 
