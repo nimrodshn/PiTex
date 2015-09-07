@@ -29,68 +29,30 @@ def main():
 
 ########### TESTS ###########
 
-def DensityTest():
-    img = cv.imread("..//Samples//slides//A0004.tif")
-    cv.namedWindow("..//Samples//slides//A0004.tif",cv.WINDOW_NORMAL)
-    cv.imshow("..//Samples//slides//A0004.tif",img)
-
-    # fe = featureExtractor(img)
-    # filters = fe.buildGaborfilters()
-    # res = fe.processGabor(img,filters)
-    # gabor_vector = fe.computeMeanAmplitude(res)
-
-    # hist = cv.calcHist(res, [0], None, [256], [0, 256])
-
-    # plt.hist(img.ravel(),256,[0,256]); plt.show()
-
-    # plt.show()
-
-    fe = featureExtractor(img)
-    desc = fe.computeDenseSIFTfeatures()
-    trainingData = []
-    trainingData.append
-    
-    trainingData.append(desc)
-    print np.shape(trainingData)
-    cv.waitKey()
-
 def featureExtractorTest():
     path1 = "../data/training/Default/miliolids/miliolid1.jpg"
     path2 = "../data/training/Default/Ammonia beccarii/A. beccarii5.jpg"
 
     im1 = cv.imread(path1)
     im2 = cv.imread(path2)
-
-    fig, axes = plt.subplots(nrows=2, ncols=2)
-
-    for i,im in [(1,im1), (3,im2)]:        
-        plt.subplot(2,2,i)
-        plt.imshow(im,cmap = 'gray')
-        plt.xticks([])
-        plt.yticks([])
-        plt.title('Original Image')
-
-        kernel = np.ones((9,9),np.float32)/40
-        dst = cv.filter2D(im,-1,kernel)
-        
-        #dst = cv.GaussianBlur(im,(7,7),0)
-
-        edges = cv.Canny(dst,40,40)
-        plt.subplot(2,2,i+1)
-        plt.imshow(edges,cmap = 'gray')
-        plt.title('Edge Image')
-        plt.xticks([])
-        plt.yticks([])
-        
+    
     plt.show()
 
     cv.waitKey()
+
+def datasetOrginizerTrainKmeans():
+
+    ds = datasetOrginizer()
+    path1 = '../data/hodlout'
+    path2 = '../data/training'
+    ds.createRegressionTrainingFromDataset(dataset_name="kmeansPalmahim1",path=path1)
+    ds.KmeansTrainingDataset(Dataset="binData/kmeansPalmahim1.npz",path2)
 
 def datasetOrgenizerRegressionTest():
     
     ds = datasetOrginizer()
     
-    path = '../data/training2'
+    path = '../data/training'
     
     labels = [0 , 6, 0, 1, 1, 0, 1, 1, 0, 2,
             0, 4, 1, 4, 1, 0, 4, 0, 0, 2,
@@ -112,41 +74,23 @@ def datasetOrgenizerRegressionTest():
             0, 0, 1 ,1, 0, 0, 2, 5, 1, 1,
             3, 0, 2]
 
+    print np.avg(labels)
+
     print len(labels)
     
     ds.createRegressionTrainingFromDataset("test",labels,path)
 
 
 def datasetOrginizerClassificationTest():
-
     ds = datasetOrginizer()
-    
     path_list = ["../data/training1/negative","../data/training1/positive"]
     class_list = ["negative","positive"]
     ds.createTrainingFromDataset("test",class_list,path_list)
 
-    data_path = "../Samples/slides"
-    training_path = "../data/training1"
-    test_path = "../data/test1"
+    data_path = "../Samples/Palmahim1"
+    training_path = "../data/training"
+    test_path = "../data/test"
     ds.splitData(data_path,training_path,test_path)
-
-
-def CNNTest():
-    data = load_digits()
-    l_in = lasagne.layers.InputLayer((100,50))
-    l_hidden = lasagne.layers.DenseLayer(l_in,num_units=200)
-    l_out = lasagne.layers.DenseLayer(l_hidden,num_units=10,nonlinearity=T.nnet.softmax)
-
-    # pl.gray()
-    # pl.matshow(data.images[1])
-    # pl.show()
-
-def csvTest():
-    with open('eggs.csv', 'wb') as csvfile:
-        writer = csv.writer(csvfile, delimiter=' ',
-                                quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        writer.writerow(['Spam'] * 5 + ['Baked Beans'])
-        writer.writerow(['Spam', 'Lovely Spam', 'Wonderful Spam'])
 
 def segmentationTest():
     im = cv.imread("..//Samples//slides//PL29II Nov 4-5 0134.tif")    
@@ -172,14 +116,27 @@ def classifierTest():
 def validateClassifier():
     cl = classifier(Dataset="binData/test.npz",regression=True)
     #cl.validation()
-    cl.regressionValidation()
+
+    true_val = [0, 2, 4, 1, 1, 0, 2, 0, 1, 0,
+                4, 4, 1, 0, 4, 5, 1, 0, 1, 0,
+                0, 2, 2, 1, 0, 0, 0, 3, 3, 1,
+                3, 1, 7, 3, 2, 3, 0, 0, 2, 2,
+                1, 7, 1, 1, 0, 4, 4, 0, 1, 0,
+                5, 0, 1, 3, 1, 4, 0, 5, 2, 4,
+                4, 1, 1, 5, 1, 1, 1, 0, 2, 1,
+                1, 0, 1, 1, 3, 1, 2, 1, 2, 3,
+                1, 1, 4, 0, 3, 0, 3, 0, 2, 0,
+                1, 3, 2, 2, 1, 1, 4, 0, 3, 0 ]
+
+
+    cl.regressionValidation(true_val)
     cv.waitKey()
 
 def crossValidateTest():
     cl = classifier(Dataset="binData/test.npz",regression=True)
     #cl.plotPCA()
     #cl.crossValidateGridSearch()
-    cl.regressionCrossValidation()
+    cl.regressionCrossValidation(svr=True)
 
 if __name__ == '__main__':
     #main()
@@ -190,6 +147,7 @@ if __name__ == '__main__':
     #datasetOrgenizerRegressionTest()
     #datasetOrginizerClassificationTest()
     #classifierTest()
-    crossValidateTest()
+    #crossValidateTest()
     #validateClassifier()
     #segmentationTest()
+    datasetOrginizerTrainKmeans()

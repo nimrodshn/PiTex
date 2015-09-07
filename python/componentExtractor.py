@@ -15,8 +15,6 @@ class componentExtractor:
         '''
         self._image = inputImage
 
-
-
     def extractComponents(self):
         '''
         Main image processing and segmentation class, uses a simple image processing technique followed by otsu threshold to gather connected components.

@@ -7,24 +7,17 @@ from componentExtractor import componentExtractor
 import numpy as np
 from sklearn.svm import SVC
 from sklearn.svm import SVR
-import csv
+from sklearn import linear_model
 from featureExtractor import featureExtractor
 import matplotlib.pyplot as plt
-from sklearn.naive_bayes import GaussianNB
 from sklearn.decomposition import PCA
 from sklearn.cross_validation import train_test_split
 from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import classification_report
-from sklearn.feature_selection import SelectKBest
-from sklearn.feature_selection import chi2, f_classif
+from sklearn.feature_selection import chi2
 from sklearn.feature_selection import SelectPercentile
-from sklearn.feature_selection import RFE, RFECV
-from sklearn.cross_validation import StratifiedKFold
 from sklearn import preprocessing
-from sklearn import cross_validation
 from sklearn import metrics
-from lasagne import layers
-from lasagne.updates import nesterov_momentum
 
 
 # TODO:
@@ -36,9 +29,10 @@ class classifier:
 
     def __init__(self, Dataset, regression, inputImage = None):
         '''
-        :param 
+        :param :
         a. Dataset: Path to a given training dataset in the format of npz. (see datasetOrginizer Class.)
         b. Input Image to classify.
+        c. regression: regression model or classifier model.
         '''
         npzfile = np.load(Dataset)
         trainingData = npzfile['arr_0']
@@ -56,8 +50,11 @@ class classifier:
         if (regression == False):
             self.X, self.features_list = self.feature_selection(trainingData,classes)
         else:
+            #self.scaler = preprocessing.StandardScaler().fit(trainingData)
+            #self.X = self.scaler.transform(trainingData)
             self.X = trainingData
-        
+
+
         self.y = labels
         
     def feature_selection(self,X,y):
@@ -73,12 +70,6 @@ class classifier:
 
         print np.shape(X)
 
-        #svc = SVC(kernel='linear')       
-        #selector = RFECV(estimator=svc, step=1, cv=StratifiedKFold(y, 4),
-        #       scoring='f1')
-
-        #selector = RFE(svc, 10, step=1)
-        #selector = SelectKBest(chi2, k=10)
         selector = SelectPercentile(chi2, percentile=10)
         X_new = selector.fit_transform(X, y)
         
@@ -99,36 +90,46 @@ class classifier:
         plt.yticks([])
         plt.show()
 
-    def regressionValidation(self):
+    def regressionValidation(self, true_val_Vector):
         '''
         Main Regression Validation function to validate model on
-        :param val_images: the numbers of the images. to be picked randomly.
+        :param true_val_Vector: true values of test set.
         '''
 
-        test_path = '../data/test2'
-        clf = SVR(C=10.0,gamma=4,kernel='rbf')
+        test_path = '../data/test'
+        clf = SVR(C=1.0 ,gamma=2.511886431509801, epsilon=1, kernel='rbf')
 
         clf.fit(self.X,self.y)
+
+        results_vector = []
 
         for i, item in enumerate(os.listdir(test_path)):
     
             im = cv.imread(test_path + "/" + item)
             fe = featureExtractor(im)
             feature_vector = fe.computeFeatureVector()
-            new_feature_vector = []
+            #new_feature_vector =   self.scaler.transform(feature_vector)
+            new_feature_vector = feature_vector
 
-            for k, num in enumerate(feature_vector):
-                max_feature = self.max_min_features[k][0]
-                min_feature = self.max_min_features[k][1]
-                new_feature_vector.append((feature_vector[k] - min_feature) / (max_feature - min_feature))
-           
             res = clf.predict(new_feature_vector)
             
             print "number of forams in image " + item + " is: " + str(res)
 
-            #cv.namedWindow(str(res),cv.WINDOW_NORMAL)
-            #cv.imshow(str(res),im)    
+            results_vector.append(res)
 
+        print "results avg: " + str(np.average(results_vector))
+        print "true val avg: " + str(np.average(true_val_Vector))
+        print "mean squared error: " + str(metrics.mean_squared_error(true_val_Vector,results_vector))
+        print "mean absolut error: " + str(metrics.mean_absolute_error(true_val_Vector,results_vector))
+
+    def KmeansFromHoldout(self,Dataset):
+
+        npzfile = np.load(Dataset)
+        trainingData = npzfile['arr_0']
+        labels = npzfile['arr_1']
+        classes = npzfile['arr_2']
+         
+            
     def classificationValidation(self):
         '''
         Main Validation function to validate model on
@@ -143,9 +144,7 @@ class classifier:
         for k in range(100):
             A[test_num[k]] = 1 
 
-        #clf = SVC(C=0.1, gamma=0.01, kernel='rbf') 
-        clf = SVR(C=1.0,gamma=0.01,kernel='rbf')
-
+        clf = SVC(C=0.1, gamma=0.01, kernel='rbf') 
         clf.fit(self.X,self.y)
 
         fig, axes = plt.subplots(nrows=10, ncols=10)
@@ -189,7 +188,7 @@ class classifier:
             
         fig.subplots_adjust(hspace=.5)
         
-        plt.show()    
+        plt.show()
 
     def posNegDecompose(self):
         '''
@@ -241,7 +240,7 @@ class classifier:
           self.X, self.y, test_size=0.5, random_state=0)
 
         # the parameters by cross-validation
-        tuned_parameters = [{'kernel': ['rbf'], 'gamma':[0.01, 0.1, 1, 10, 100] ,
+        tuned_parameters = [{'kernel': ['rbf'], 'gamma':[0.1,0.2,0.4,0.8,1,2,4,6,8,10] ,
                             'C':[0.1 ,1, 10 ,100, 1000]}]
         
                             # [1e2,1e1,1e0,1e-1,1e-2,1e-3,1e-4,1e-6,1e-8,1e-10]
@@ -277,23 +276,29 @@ class classifier:
         print(classification_report(y_true, y_pred))
         print()
 
-    def regressionCrossValidation(self):
-        tuned_parameters={"C": [1e-5,1e-4,1e-3,1e-2,1e-1,1e0, 1e1, 1e2, 1e3],
-                            "gamma": np.logspace(-10, 10),
-                            "epsilon":[0.01,0.1,1,10]}
-        
+    def regressionCrossValidation(self ,svr=True):
+        if (svr==True):
+            tuned_parameters={"C": [1,2,4,6,10],
+                                "gamma":np.logspace(0.2,0.4),
+                                "epsilon":[1,2,4,6,10]}
+            clf = GridSearchCV(SVR(kernel='rbf', gamma=0.1),tuned_parameters, cv=5,
+                               scoring='mean_squared_error')
+        else:
+            clf = GridSearchCV(linear_model.Ridge(alpha=1.0), cv=5,
+                  param_grid={"alpha": [1e7,1e6,1e5,1e4,1e3,1e2,1e1,1e0, 0.1, 1e-2, 1e-3]},
+                              scoring='mean_squared_error')
+                    
+        clf.fit(self.X, self.y)
         print("# Tuning hyper-parameters")
         print()
-
-        clf = GridSearchCV(SVR(kernel='rbf', gamma=0.1),tuned_parameters, cv=5,
-                           scoring='mean_squared_error')
-        
-        clf.fit(self.X, self.y)
-
-        # look at the results
         print("Best parameters set found on development set:")
         print()
         print(clf.best_params_)
+        print()
+        print ("Best score is: " + str(np.sqrt(np.abs(clf.best_score_))))
+        print()
+        meanoftraining = np.mean(self.y)
+        print ("Mean of labels is :" + str(meanoftraining))
         print()
         print("Grid scores on development set:")
         print()
@@ -301,6 +306,7 @@ class classifier:
             print("%0.3f (+/-%0.03f) for %r"
                   % (mean_score, scores.std() * 2, params))
         print()
+
 
 
     def classifieSample(self):

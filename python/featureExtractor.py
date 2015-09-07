@@ -8,9 +8,6 @@ import matplotlib.pyplot as plt
 
 
 # TODO: 
-# 1. Add feature learning.
-# 2. Add feature normalization.
-# 3. Add features: mean intensinty, standard dev of intensint, "room structure" feature(!!)
 
 class featureExtractor:
     def __init__(self,input):
@@ -119,10 +116,6 @@ class featureExtractor:
             if cv.contourArea(contours[i]) > cv.contourArea(contours[max_contour_idx]): # Find max contour
                 max_contour_idx = i
 
-        #rect = cv.boundingRect(contours[max_contour_idx])
-        #subrect = cv.cv.GetSubRect(cv.cv.fromarray(self.im),rect)
-        #component = np.asanyarray(subrect)
-
         return contours[max_contour_idx]
 
     def computeMorphtypeNumber(self):
@@ -167,7 +160,7 @@ class featureExtractor:
             feature_vector.append(sum)
 
             feature_vector = feature_vector + hist
-
+            
         #print feature_vector
         #cv.waitKey()
         return feature_vector
@@ -179,12 +172,6 @@ class featureExtractor:
         kp=dense.detect(gray)
         kp,des=sift.compute(gray,kp)
         
-        #draw = cv.drawKeypoints(gray,kp)
-        #cv.namedWindow("kp", cv.WINDOW_NORMAL)
-        #cv.imshow("kp",draw)
-        #print des
-        
-        feature_vector = np.ravel(des.sum(axis=0))
+        #feature_vector = np.ravel(des.sum(axis=0))
         #print feature_vector
-
         return feature_vector
