@@ -50,8 +50,6 @@ class classifier:
         if (regression == False):
             self.X, self.features_list = self.feature_selection(trainingData,classes)
         else:
-            #self.scaler = preprocessing.StandardScaler().fit(trainingData)
-            #self.X = self.scaler.transform(trainingData)
             self.X = trainingData
 
 
@@ -120,15 +118,7 @@ class classifier:
         print "results avg: " + str(np.average(results_vector))
         print "true val avg: " + str(np.average(true_val_Vector))
         print "mean squared error: " + str(metrics.mean_squared_error(true_val_Vector,results_vector))
-        print "mean absolut error: " + str(metrics.mean_absolute_error(true_val_Vector,results_vector))
-
-    def KmeansFromHoldout(self,Dataset):
-
-        npzfile = np.load(Dataset)
-        trainingData = npzfile['arr_0']
-        labels = npzfile['arr_1']
-        classes = npzfile['arr_2']
-         
+        print "mean absolut error: " + str(metrics.mean_absolute_error(true_val_Vector,results_vector))  
             
     def classificationValidation(self):
         '''

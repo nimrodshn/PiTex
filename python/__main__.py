@@ -29,19 +29,7 @@ def main():
 
 ########### TESTS ###########
 
-def featureExtractorTest():
-    path1 = "../data/training/Default/miliolids/miliolid1.jpg"
-    path2 = "../data/training/Default/Ammonia beccarii/A. beccarii5.jpg"
-
-    im1 = cv.imread(path1)
-    im2 = cv.imread(path2)
-    
-    plt.show()
-
-    cv.waitKey()
-
 def datasetOrginizerTrainKmeans():
-
     ds = datasetOrginizer()
     path1 = '../data/hodlout'
     path2 = '../data/training'
@@ -49,11 +37,8 @@ def datasetOrginizerTrainKmeans():
     ds.KmeansTrainingDataset(Dataset="binData/kmeansPalmahim1.npz",path2)
 
 def datasetOrgenizerRegressionTest():
-    
     ds = datasetOrginizer()
-    
     path = '../data/training'
-    
     labels = [0 , 6, 0, 1, 1, 0, 1, 1, 0, 2,
             0, 4, 1, 4, 1, 0, 4, 0, 0, 2,
             1, 1, 2, 1, 2, 1, 6, 3, 0, 0,
@@ -73,11 +58,8 @@ def datasetOrgenizerRegressionTest():
             2, 0, 1, 2, 4, 1, 0, 1 ,1, 0,
             0, 0, 1 ,1, 0, 0, 2, 5, 1, 1,
             3, 0, 2]
-
     print np.avg(labels)
-
     print len(labels)
-    
     ds.createRegressionTrainingFromDataset("test",labels,path)
 
 
