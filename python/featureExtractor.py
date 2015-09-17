@@ -171,6 +171,7 @@ class featureExtractor:
         gray = cv.cvtColor(self.im,cv.COLOR_BGR2GRAY)
         kp=dense.detect(gray)
         kp,des=sift.compute(gray,kp)
+        feature_vector = des
         
         #feature_vector = np.ravel(des.sum(axis=0))
         #print feature_vector

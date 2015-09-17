@@ -26,8 +26,9 @@ class datasetOrginizer:
         '''
         numofdata = len(os.listdir(data_path))
         print numofdata
-        #pick 100 test images at random
-        test_num = random.sample(range(1, numofdata), 20) 
+        number_of_split = 20
+        #pick #number_of_split test images at random
+        test_num = random.sample(range(1, numofdata), number_of_split) 
         A = np.zeros(numofdata)        
         for k in range(20):
             A[test_num[k]] = 1 
@@ -90,7 +91,8 @@ class datasetOrginizer:
             im = cv.imread(p)
             fe = featureExtractor(im)
             feature_vector = fe.computeFeatureVector()
-            trainingData.append(feature_vector)
+            #trainingData.append(feature_vector)
+            trainingData.vstack(feature_vector) # for k means
 
         ### DEBUG 
         print np.shape(trainingData)
@@ -104,7 +106,8 @@ class datasetOrginizer:
         Kmeanslabels = npzfile['arr_1']
         Kmeansclasses = npzfile['arr_2']
 
-        k_means = cluster.KMeans(n_clusters=10)
+        num_of_clusters = 10
+        k_means = cluster.KMeans(n_clusters=num_of_clusters)
         k_means.fit(KmeansData)
 
         base_path = "binData/"
@@ -121,11 +124,11 @@ class datasetOrginizer:
             print p # DEBUG
             im = cv.imread(p)
             fe = featureExtractor(im)
-            feature_vector = np.zeros(10)
+            feature_vector = np.zeros(num_of_clusters)
             raw_vector = fe.computeFeatureVector()
             Km_vector = k_means.predict(raw_vector) 
             for i in range(len(Km_vector)):
-                if feature_vector[Km_vector[i]] = feature_vector[Km_vector[i]] + 1 
+                feature_vector[Km_vector[i]] = feature_vector[Km_vector[i]] + 1 
                 
             trainingData.append(feature_vector)
 
