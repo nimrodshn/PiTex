@@ -18,6 +18,9 @@ import lasagne
 import theano.tensor as T
 import numpy as np
 import random
+import json
+from pprint import pprint
+
 
 def main():
     root = Tk()
@@ -31,43 +34,31 @@ def main():
 
 def datasetOrginizerTrainKmeans():
     ds = datasetOrginizer()
-    path1 = '../data/hodlout'
-    path2 = '../data/training'
-    ds.createRegressionTrainingFromDataset(dataset_name="kmeansPalmahim1",path=path1)
-    ds.KmeansTrainingDataset(Dataset="binData/kmeansPalmahim1.npz",path2)
+    
+    data_path = "../Samples/Palmahim1"
+    holdout_path = "../data/holdout"
+    training_path = "../data/training"
+    test_path = "../data/test"
+    #ds.splitData(data_path,training_path,test_path)
 
-def datasetOrgenizerRegressionTest():
-    ds = datasetOrginizer()
-    path = '../data/training'
-    labels = [0 , 6, 0, 1, 1, 0, 1, 1, 0, 2,
-            0, 4, 1, 4, 1, 0, 4, 0, 0, 2,
-            1, 1, 2, 1, 2, 1, 6, 3, 0, 0,
-            2, 1, 0, 1, 1, 6, 0, 4, 1, 8,
-            1, 2, 0, 0, 1, 0, 0, 4, 0, 3,
-            2, 2, 2, 0, 2, 4, 0, 6, 1, 1,
-            2, 3, 6, 0, 1, 0, 0, 1, 1, 0,
-            0, 1, 1, 1, 0, 0, 2, 5, 9, 1,
-            1, 0, 0, 1, 1, 1, 1, 1, 5, 0,
-            2, 1, 1, 2, 0, 2, 0, 0, 2, 2,
-            0, 1, 4, 4, 1, 2, 1, 2, 1, 5,
-            0, 2, 0, 0, 5, 0, 1, 4, 2, 3,
-            3, 0, 5, 5, 1, 1, 1, 1, 1, 2,
-            2, 1, 6, 0, 1, 3, 7, 2, 0, 0,
-            0, 1, 0, 4, 0, 2, 4, 1, 3, 0,
-            0, 2, 2 ,5, 1, 1, 3, 0, 5, 1,
-            2, 0, 1, 2, 4, 1, 0, 1 ,1, 0,
-            0, 0, 1 ,1, 0, 0, 2, 5, 1, 1,
-            3, 0, 2]
-    print np.avg(labels)
-    print len(labels)
-    ds.createRegressionTrainingFromDataset("test",labels,path)
+    with open('../data/trainingAnnotations.json') as data_file:    
+        data = json.load(data_file)
+    
+    training_list = []
+    labels_list = []
+    for item in data:
+        training_list.append(item['filename'])
+        labels_list.append(len(item['annotations']))
 
+    ds.createRegressionTrainingFromDataset(dataset_name="kmeansPalmahim1",path=holdout_path)
+
+    ds.KmeansTrainingDataset(KmeansData="binData/kmeansPalmahim1.npz",dataset_name="trainingPalmahim1",labels_list=labels_list,training_path_list=training_list)
 
 def datasetOrginizerClassificationTest():
     ds = datasetOrginizer()
-    path_list = ["../data/training1/negative","../data/training1/positive"]
-    class_list = ["negative","positive"]
-    ds.createTrainingFromDataset("test",class_list,path_list)
+    # path_list = ["../data/training1/negative","../data/training1/positive"]
+    # class_list = ["negative","positive"]
+    # ds.createTrainingFromDataset("test",class_list,path_list)
 
     data_path = "../Samples/Palmahim1"
     training_path = "../data/training"
@@ -96,26 +87,23 @@ def classifierTest():
     cv.waitKey()
 
 def validateClassifier():
-    cl = classifier(Dataset="binData/test.npz",regression=True)
+    cl = classifier(Dataset="binData/trainingPalmahim1.npz",regression=True)
     #cl.validation()
 
-    true_val = [0, 2, 4, 1, 1, 0, 2, 0, 1, 0,
-                4, 4, 1, 0, 4, 5, 1, 0, 1, 0,
-                0, 2, 2, 1, 0, 0, 0, 3, 3, 1,
-                3, 1, 7, 3, 2, 3, 0, 0, 2, 2,
-                1, 7, 1, 1, 0, 4, 4, 0, 1, 0,
-                5, 0, 1, 3, 1, 4, 0, 5, 2, 4,
-                4, 1, 1, 5, 1, 1, 1, 0, 2, 1,
-                1, 0, 1, 1, 3, 1, 2, 1, 2, 3,
-                1, 1, 4, 0, 3, 0, 3, 0, 2, 0,
-                1, 3, 2, 2, 1, 1, 4, 0, 3, 0 ]
+    with open('../data/trainingAnnotations.json') as data_file:    
+        data = json.load(data_file)
+    
+    true_val = []
+    training_list = []
+    for item in data:
+        training_list.append(item['filename'])
+        true_val.append(len(item['annotations']))    
 
-
-    cl.regressionValidation(true_val)
+    cl.regressionValidation(training_list, true_val)
     cv.waitKey()
 
 def crossValidateTest():
-    cl = classifier(Dataset="binData/test.npz",regression=True)
+    cl = classifier(Dataset="binData/trainingPalmahim1.npz",regression=True)
     #cl.plotPCA()
     #cl.crossValidateGridSearch()
     cl.regressionCrossValidation(svr=True)
@@ -130,6 +118,7 @@ if __name__ == '__main__':
     #datasetOrginizerClassificationTest()
     #classifierTest()
     #crossValidateTest()
-    #validateClassifier()
     #segmentationTest()
     datasetOrginizerTrainKmeans()
+    validateClassifier()
+    

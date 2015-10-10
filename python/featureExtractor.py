@@ -19,27 +19,17 @@ class featureExtractor:
         :return: a list representing the feature vector to be called by datasetOrginizer to build your dataset.
         '''
 
+        ################# Classification Features #################     
+
         # morphotype = self.computeMorphtypeNumber()
-
-        # gray = cv.cvtColor(self.im,cv.COLOR_BGR2GRAY)
-
-        # hist = cv.calcHist(gray, [0], None, [8], [0, 256])
-
-        # hist = hist.flatten()
-
-        # hist = hist.tolist()
 
         # haralick = mh.features.haralick(self.im, ignore_zeros=False, preserve_haralick_bug=False, compute_14th_feature=False).flatten()
         
         # haralick = haralick.tolist()
 
-        #size = self.computeSize()
+        # size = self.computeSize()
 
         # shape = self.computeHuShape()
-
-        #solidity = self.computeSolidity()
-
-        #corners = self.computeGoodFeaturesToTrack()
 
         # filters = self.buildGaborfilters()
         # res = self.processGabor(self.im,filters)
@@ -52,6 +42,8 @@ class featureExtractor:
         #lbp = lbp.tolist()
 
         #feature_vector =  lbp + haralick + gabor_vector + shape + [morphotype]
+
+        ################# Regression Features: #################
 
         dense = self.computeDenseSIFTfeatures()
 
@@ -171,8 +163,6 @@ class featureExtractor:
         gray = cv.cvtColor(self.im,cv.COLOR_BGR2GRAY)
         kp=dense.detect(gray)
         kp,des=sift.compute(gray,kp)
-        feature_vector = des
-        
-        #feature_vector = np.ravel(des.sum(axis=0))
+        feature_vector = np.asarray(des)
         #print feature_vector
         return feature_vector

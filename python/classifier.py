@@ -18,6 +18,7 @@ from sklearn.feature_selection import chi2
 from sklearn.feature_selection import SelectPercentile
 from sklearn import preprocessing
 from sklearn import metrics
+from sklearn.externals import joblib
 
 
 # TODO:
@@ -88,28 +89,34 @@ class classifier:
         plt.yticks([])
         plt.show()
 
-    def regressionValidation(self, true_val_Vector):
+    def regressionValidation(self,test_list , true_val_Vector):
         '''
         Main Regression Validation function to validate model on
         :param true_val_Vector: true values of test set.
         '''
 
-        test_path = '../data/test'
-        clf = SVR(C=1.0 ,gamma=2.511886431509801, epsilon=1, kernel='rbf')
+        test_path = '../data/training'
+        clf = SVR(C=1.0 ,gamma=1.5848931924611136, epsilon=1, kernel='rbf')
 
         clf.fit(self.X,self.y)
 
         results_vector = []
 
-        for i, item in enumerate(os.listdir(test_path)):
-    
-            im = cv.imread(test_path + "/" + item)
-            fe = featureExtractor(im)
-            feature_vector = fe.computeFeatureVector()
-            #new_feature_vector =   self.scaler.transform(feature_vector)
-            new_feature_vector = feature_vector
+        k_means = joblib.load('KmeandPalmahim1.pkl')
 
-            res = clf.predict(new_feature_vector)
+        [m,num_of_clusters] = np.shape(self.X)
+
+        for i, item in enumerate(test_list):
+    
+            im = cv.imread(item)
+            fe = featureExtractor(im)
+            feature_vector = np.zeros(num_of_clusters)
+            raw_vector = fe.computeFeatureVector()
+            Km_vector = k_means.predict(raw_vector) 
+            for i in range(len(Km_vector)):
+                feature_vector[Km_vector[i]] = feature_vector[Km_vector[i]] + 1 
+
+            res = clf.predict(feature_vector)
             
             print "number of forams in image " + item + " is: " + str(res)
 
