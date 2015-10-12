@@ -2,7 +2,7 @@ __author__ = 'nimrodshn'
 import Tkinter as tk
 import tkMessageBox
 import tkFileDialog
-from datasetOrginizer import datasetOrginizer
+from DatasetOrginizer import DatasetOrginizer
 
 
 
@@ -103,7 +103,7 @@ class DatasetManagerGUI:
         if not dataset_name:
                 tkMessageBox.showinfo("Error", "Please Enter dataset name")
         else:
-            do = datasetOrginizer()
+            do = DatasetOrginizer()
             do.createTrainingFromDataset(dataset_name,self.class_name_list,self.class_path_list)
             self.parent.mydatasetlist.insert(0,dataset_name)
             self.window.destroy()

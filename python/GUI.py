@@ -3,7 +3,7 @@ import Tkinter as tk
 import tkMessageBox
 from PIL import Image, ImageTk
 import cv2
-from classifier import classifier
+from Classifier import Classifier
 from DatasetManagerGUI import DatasetManagerGUI
 
 class ForamGUI(tk.Frame):
@@ -145,7 +145,7 @@ class ForamGUI(tk.Frame):
             cv2.namedWindow("CurrentFrame",cv2.WINDOW_NORMAL)
             cv2.imshow("CurrentFrame",img)
 
-            cl = classifier(img)
+            cl = Classifier(img)
             cl.classifieSample(dataset_path)
         except:
             tkMessageBox.showerror("Error","Please pick a Dataset")
