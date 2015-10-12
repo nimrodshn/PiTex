@@ -50,21 +50,24 @@ class datasetOrginizer:
             cv.imwrite("../data/holdout/" + str(i)+ ".jpg", im)
             os.remove("../data/training/" + str(i)+ ".jpg")
         
-    def splitDataForClassification(self, training_path, test_path):
-        
-        for i, path in enumerate(training_set):
+    def splitDataForClassification(self, path_list, annotations):
+        for i, path in enumerate(path_list):
             im = cv.imread(path)
             ce = componentExtractor(im)
             components = ce.extractComponents() 
-            for k, component in enumerate(components):
-              cv.imwrite("../data/training_classification" + "/" + str(i) + str(k)+ ".jpg", component[0])
+            print "bounding rectangels in image " + str(i)
+            if len(annotations[i]) > 0:
+                for k, component in enumerate(components):         
+                    bounding_rect = component[1] # see componentExtractor
+                    for annotation in annotations[i]:                
+                        if ((bounding_rect[0] <= annotation['x'] <= bounding_rect[0] + bounding_rect[2]) and (bounding_rect[1] <= annotation['y'] <= bounding_rect[1] + bounding_rect[3])): 
+                            cv.imwrite("../data/training_classification/positive/" + str(i) + str(k)+ ".jpg", component[0])
+                        else:
+                            cv.imwrite("../data/training_classification/negative/" + str(i) + str(k)+ ".jpg", component[0])
 
-        for i, path in enumerate(test_set):
-            im = cv.imread(path)
-            ce = componentExtractor(im)
-            components = ce.extractComponents()      
-            for k, component in enumerate(components):
-              cv.imwrite("../data/test_classification" + "/" + str(i) + str(k)+ ".jpg", component[0])
+            else:
+                for k, component in enumerate(components):         
+                    cv.imwrite("../data/training_classification/negative/" + str(i) + str(k)+ ".jpg", component[0])
 
     def createRegressionTrainingFromDataset(self, dataset_name,path, labels_list=None):
         '''
@@ -100,7 +103,7 @@ class datasetOrginizer:
         ### SAVING THE DATASETS TO NPZ FORMAT
         np.savez(os.path.join(base_path, dataset_name), trainingData, labels_list, classes,  min_max_features)
 
-    def KmeansTrainingDataset(self,KmeansData, dataset_name, training_path_list, labels_list):
+    def createKmeansTrainingDataset(self,KmeansData, dataset_name, training_path_list, labels_list):
         '''
         Create Training for Kmeans With regression.
         '''
@@ -142,7 +145,7 @@ class datasetOrginizer:
         joblib.dump(k_means, 'KmeandPalmahim1.pkl', compress=9)
         np.savez(os.path.join(base_path, dataset_name), trainingData, labels_list, classes,  min_max_features)
 
-    def createTrainingFromDataset(self, dataset_name, labels_list, path_list):
+    def createClassificationTrainingFromDataset(self, dataset_name, labels_list, path_list):
         '''
         Creates a new training set to work on from given path list and labels.
         Notice path_list and path_labels are intended to be lists of the same length. see tests in __main__ for examples.

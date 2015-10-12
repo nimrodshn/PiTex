@@ -49,14 +49,14 @@ class classifier:
         print np.shape(self.max_min_features)
         
         if (regression == False):
-            self.X, self.features_list = self.feature_selection(trainingData,classes)
+            self.X, self.features_list = self.featureSelection(trainingData,classes)
         else:
             self.X = trainingData
 
 
         self.y = labels
         
-    def feature_selection(self,X,y):
+    def featureSelection(self,X,y):
         '''
          Feature selection recursive feature elimination with Linear SVM.
         :param:
@@ -75,7 +75,6 @@ class classifier:
         return X_new, selector.get_support()
 
     def plotPCA(self):
-
         print np.shape(self.X)
 
         pca = PCA(n_components=2)
@@ -122,8 +121,17 @@ class classifier:
 
             results_vector.append(res)
 
+        avg_classifier_res = np.zeros(len(results_vector))
+        for num in avg_classifier_res: 
+            num = np.average(true_val_Vector) 
+
         print "results avg: " + str(np.average(results_vector))
         print "true val avg: " + str(np.average(true_val_Vector))
+
+
+        print "'spit avg classifier' mean squared error: " + str(metrics.mean_squared_error(true_val_Vector,avg_classifier_res)) 
+        print "'spit avg classifier' mean absolut error: " + str(metrics.mean_absolute_error(true_val_Vector,avg_classifier_res)) 
+        
         print "mean squared error: " + str(metrics.mean_squared_error(true_val_Vector,results_vector))
         print "mean absolut error: " + str(metrics.mean_absolute_error(true_val_Vector,results_vector))  
             
@@ -187,47 +195,8 @@ class classifier:
         
         plt.show()
 
-    def posNegDecompose(self):
-        '''
-        :param Dataset: The dataset used to create the model.
-         This function returns list of 'objects of interest': e.g. suspected forams.
-        :return:
-        '''
 
-        ### Segmentation
-        ce = componentExtractor(self._image)
-        components = ce.extractComponents() # THIS IS A LIST
-        
-        ### Model Building 
-        clf = SVC(C=2 , gamma=0.2, kernel='rbf')        
-        clf.fit(self.X,self.y)
-
-        for i, component in enumerate(components):
-            fe = featureExtractor(component[0])
-            feature_vector = fe.computeFeatureVector()
-            new_feature_vector = []
-
-            for k, num in enumerate(feature_vector):
-                if (self.features_list[k] == True):
-                     # Normalize feature vector
-                    max_feature = self.max_min_features[k][0]
-                    min_feature = self.max_min_features[k][1]
-                    new_feature_vector.append((feature_vector[k] - min_feature) / (max_feature - min_feature))
-                
-            res = clf.predict(new_feature_vector)
-            print res
-            
-            if res[0] == 1:
-                x,y,w,h = component[1]
-                cv.rectangle(self._image,(x,y),(x+w,y+h),(0,255,0),2)
-
-        
-        cv.namedWindow("positive",cv.WINDOW_NORMAL)
-        cv.imshow("positive",self._image)
-
-        cv.waitKey()
-
-    def crossValidateGridSearch(self):
+    def classificationCrossValidation(self):
         '''
         This function is used to cross validate the model using Grid Search Method.
         :return:
@@ -303,26 +272,5 @@ class classifier:
             print("%0.3f (+/-%0.03f) for %r"
                   % (mean_score, scores.std() * 2, params))
         print()
-
-
-
-    def classifieSample(self):
-        '''
-         Main Classifier Function. This function classifies 'Potential Forams' to their different species after posNegDecompose has be used to distinguish between positive and negative components.
-        :return:
-        '''
-        
-        ## Segmentation
-        ce = componentExtractor(self._image)
-        components = ce.extractComponents # THIS IS A LIST
-
-        for i,component in enumerate(components):
-            
-            fe = featureExtractor(component[i])
-            morphoType = fe.computeMorphtypeNumber(components[i])
-            filters = fe.buildGaborfilters()
-            results = fe.processGabor(component,filters)
-            feature_vector = fe.computeMeanAmplitude(results)
-            feature_vector.append(morphoType)
 
 

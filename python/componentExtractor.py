@@ -55,10 +55,10 @@ class componentExtractor:
                 #cv2.drawContours(im, contours, i, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), -1)
 
         
-        ############### Debug ##################
+        # ############### Debug ##################
 
-        #cv2.namedWindow("contours", cv2.WINDOW_NORMAL)
-        #cv2.imshow("contours", im)
-
+        # cv2.namedWindow("contours", cv2.WINDOW_NORMAL)
+        # cv2.imshow("contours", im)
+        
         return components
 

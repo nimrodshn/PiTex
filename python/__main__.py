@@ -54,16 +54,24 @@ def datasetOrginizerTrainKmeans():
 
     ds.KmeansTrainingDataset(KmeansData="binData/kmeansPalmahim1.npz",dataset_name="trainingPalmahim1",labels_list=labels_list,training_path_list=training_list)
 
-def datasetOrginizerClassificationTest():
+def datasetOrginizerTrainClassification():
     ds = datasetOrginizer()
-    # path_list = ["../data/training1/negative","../data/training1/positive"]
-    # class_list = ["negative","positive"]
-    # ds.createTrainingFromDataset("test",class_list,path_list)
+    with open('../data/trainingAnnotations.json') as data_file:    
+        data = json.load(data_file)
+    
+    training_list = []
+    annotations = []
+    for item in data:
+        training_list.append(item['filename'])
+        annotations.append(item['annotations'])
+        
+    path_list = ["../data/training1/negative","../data/training1/positive"]
+    class_list = ["negative","positive"]
 
-    data_path = "../Samples/Palmahim1"
     training_path = "../data/training"
     test_path = "../data/test"
-    ds.splitData(data_path,training_path,test_path)
+    ds.splitDataForClassification(training_list, annotations)
+    # ds.createTrainingFromDataset("classificationPalmahim1",class_list, path_list)
 
 def segmentationTest():
     im = cv.imread("..//Samples//slides//PL29II Nov 4-5 0134.tif")    
@@ -115,10 +123,10 @@ if __name__ == '__main__':
     #featureExtractorTest()
     #DensityTest()
     #datasetOrgenizerRegressionTest()
-    #datasetOrginizerClassificationTest()
+    datasetOrginizerTrainClassification()
     #classifierTest()
     #crossValidateTest()
     #segmentationTest()
-    datasetOrginizerTrainKmeans()
-    validateClassifier()
+    #datasetOrginizerTrainKmeans()
+    #validateClassifier()
     
