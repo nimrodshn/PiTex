@@ -19,6 +19,7 @@ import theano.tensor as T
 import numpy as np
 import random
 import json
+import os
 from pprint import pprint
 
 
@@ -32,7 +33,7 @@ def main():
 
 ########### TESTS ###########
 
-def DatasetOrginizerTrainKmeans():
+def datasetOrginizerTrainKmeans():
     ds = DatasetOrginizer()
     
     data_path = "../Samples/Palmahim1"
@@ -54,7 +55,16 @@ def DatasetOrginizerTrainKmeans():
 
     ds.KmeansTrainingDataset(KmeansData="binData/kmeansPalmahim1.npz",dataset_name="trainingPalmahim1",labels_list=labels_list,training_path_list=training_list)
 
-def DatasetOrginizerTrainClassification():
+def resizeImagesTest():
+    path_list = ["../data/training_classification/negative", "../data/training_classification/positive", "../data/holdout_classification"] 
+    for path in path_list:
+        for item in os.listdir(path):
+            p = path + "/" + item
+            img = cv.imread(p)
+            res = cv.resize(img,(200,200), interpolation = cv.INTER_CUBIC)
+            cv.imwrite(p,res) 
+
+def splitDataForClassificationTest():
     ds = DatasetOrginizer()
     with open('../data/trainingAnnotations.json') as data_file:    
         data = json.load(data_file)
@@ -64,14 +74,21 @@ def DatasetOrginizerTrainClassification():
     for item in data:
         training_list.append(item['filename'])
         annotations.append(item['annotations'])
-        
-    path_list = ["../data/training1/negative","../data/training1/positive"]
-    class_list = ["negative","positive"]
+    
+    path_list = ["../data/training_classification/positive", "../data/training_classification/negative"]
+    ds.splitDataForClassification(training_list,annotations)
 
-    training_path = "../data/training"
-    test_path = "../data/test"
-    ds.splitDataForClassification(training_list, annotations)
-    # ds.createTrainingFromDataset("classificationPalmahim1",class_list, path_list)
+    negative_path = "../data/training_classification/negative"
+    positive_path = '../data/training_classification/positive'
+    ds.splitDataForHoldout(negative_path,positive_path)
+
+def datasetOrginizerTrainClassification():
+    ds = DatasetOrginizer()
+    class_list = ["positive","negative"]
+    kmeans_path = ['../data/holdout_classification']
+    path_list = ["../data/training_classification/positive", "../data/training_classification/negative"]
+    ds.createClassificationTrainingFromDataset(dataset_name="kmeansClassificationPalmahim1",labels_list=class_list, path_list=kmeans_path)
+    ds.createKmeansTrainingDataset(KmeansData="binData/kmeansClassificationPalmahim1.npz",dataset_name="classificationTrainingPalmahim1",labels_list=class_list, path_list=path_list)
 
 def segmentationTest():
     im = cv.imread("..//Samples//slides//PL29II Nov 4-5 0134.tif")    
@@ -84,7 +101,7 @@ def segmentationTest():
         cv.imshow(str(i),component[0])
     cv.waitKey()
 
-def ClassifierTest():
+def classifierTest():
     img = cv.imread("..//Samples//slides//A0004.tif")
     cv.namedWindow("Sample",cv.WINDOW_NORMAL)
     cv.imshow("Sample",img)
@@ -95,39 +112,29 @@ def ClassifierTest():
     cv.waitKey()
 
 def validateClassifier():
-    cl = Classifier(Dataset="binData/trainingPalmahim1.npz",regression=True)
-    #cl.validation()
-
-    with open('../data/trainingAnnotations.json') as data_file:    
-        data = json.load(data_file)
+    cl = Classifier(Dataset="binData/classificationTrainingPalmahim1.npz",regression=False)
+    path_list = ["../data/training_classification/positive", "../data/training_classification/negative"]
     
-    true_val = []
-    training_list = []
-    for item in data:
-        training_list.append(item['filename'])
-        true_val.append(len(item['annotations']))    
-
-    cl.regressionValidation(training_list, true_val)
+    cl.classificationValidation(path_list)
     cv.waitKey()
 
 def crossValidateTest():
-    cl = Classifier(Dataset="binData/trainingPalmahim1.npz",regression=True)
-    #cl.plotPCA()
-    #cl.crossValidateGridSearch()
-    cl.regressionCrossValidation(svr=True)
+    cl = Classifier(Dataset="binData/classificationTrainingPalmahim1.npz",regression=False)
+    #cl.plotHistogram()
+    cl.classificationCrossValidation()
+    #cl.regressionCrossValidation(svr=True)
 
 if __name__ == '__main__':
     #main()
 
     #CNNTest()
     #FeatureExtractorTest()
-    #DensityTest()
-    #datasetOrgenizerRegressionTest()
-    print "Something"
-    #DatasetOrginizerTrainClassification()
+    #resizeImagesTest()
+    #splitDataForClassificationTest()
+    #datasetOrginizerTrainClassification()
     #ClassifierTest()
     #crossValidateTest()
     #segmentationTest()
     #DatasetOrginizerTrainKmeans()
-    #validateClassifier()
+    validateClassifier()
     

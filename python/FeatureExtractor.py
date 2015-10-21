@@ -38,12 +38,9 @@ class FeatureExtractor:
         #hog = self.computeHOG()
 
         #lbp = self.computeLBP().flatten() 
-
         #lbp = lbp.tolist()
 
         #feature_vector =  lbp + haralick + gabor_vector + shape + [morphotype]
-
-        ################# Regression Features: #################
 
         dense = self.computeDenseSIFTfeatures()
 
@@ -159,7 +156,7 @@ class FeatureExtractor:
 
     def computeDenseSIFTfeatures(self):
         sift = cv.SIFT()
-        dense=cv.FeatureDetector_create("Dense")
+        dense = cv.FeatureDetector_create("Dense")
         gray = cv.cvtColor(self.im,cv.COLOR_BGR2GRAY)
         kp=dense.detect(gray)
         kp,des=sift.compute(gray,kp)

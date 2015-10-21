@@ -19,6 +19,7 @@ from sklearn.feature_selection import SelectPercentile
 from sklearn import preprocessing
 from sklearn import metrics
 from sklearn.externals import joblib
+from sklearn.metrics import confusion_matrix
 
 
 # TODO:
@@ -41,21 +42,19 @@ class Classifier:
         classes = npzfile['arr_2']
         
         self._image = inputImage
-        self.max_min_features = npzfile['arr_3']
         
         print "training matrix size: " 
         print np.shape(trainingData)
-        print "min_max feature array size: "
-        print np.shape(self.max_min_features)
-        
-        if (regression == False):
-            self.X, self.features_list = self.featureSelection(trainingData,classes)
-        else:
-            self.X = trainingData
+        print "classes size "
+        print np.shape(classes)
 
-
-        self.y = labels
+        # Scaling Data
+        x_np = np.asarray(trainingData)
+        X_scaled = (x_np - x_np.mean()) / x_np.std()
         
+        self.X = X_scaled 
+        self.y = classes
+
     def featureSelection(self,X,y):
         '''
          Feature selection recursive feature elimination with Linear SVM.
@@ -74,9 +73,30 @@ class Classifier:
         
         return X_new, selector.get_support()
 
-    def plotPCA(self):
-        print np.shape(self.X)
+    
+    def plotHistogram(self):
+        print self.X
+        print self.y
 
+        x_np = np.asarray(self.X)
+        z_scores_np = (x_np - x_np.mean()) / x_np.std()
+        X_scaled = z_scores_np
+
+        print X_scaled
+
+        for i, num in enumerate(self.y):
+            if num == 1:
+                counter = i
+                break
+
+        X_positive = X_scaled[:counter][:]
+        X_negative = X_scaled[counter+1:][:]
+
+        print np.shape(X_positive)
+        print np.shape(X_negative)
+
+
+    def plotPCA(self):
         pca = PCA(n_components=2)
         X_r = pca.fit(self.X).transform(self.X)
 
@@ -88,114 +108,48 @@ class Classifier:
         plt.yticks([])
         plt.show()
 
-    def regressionValidation(self,test_list , true_val_Vector):
+    def classificationValidation(self,test_list):
         '''
-        Main Regression Validation function to validate model on
+        Main classification Validation function to validate model on
         :param true_val_Vector: true values of test set.
         '''
-
-        test_path = '../data/training'
-        clf = SVR(C=1.0 ,gamma=1.5848931924611136, epsilon=1, kernel='rbf')
+        clf = SVC(C=0.1,kernel='linear')
 
         clf.fit(self.X,self.y)
 
         results_vector = []
+        y_true = []
+        cl=0
 
-        k_means = joblib.load('KmeandPalmahim1.pkl')
+        k_means = joblib.load('KmeansBlobsPalmahim1.pkl')
 
         [m,num_of_clusters] = np.shape(self.X)
 
-        for i, item in enumerate(test_list):
-    
-            im = cv.imread(item)
-            fe = FeatureExtractor(im)
-            feature_vector = np.zeros(num_of_clusters)
-            raw_vector = fe.computeFeatureVector()
-            Km_vector = k_means.predict(raw_vector) 
-            for i in range(len(Km_vector)):
-                feature_vector[Km_vector[i]] = feature_vector[Km_vector[i]] + 1 
-
-            res = clf.predict(feature_vector)
-            
-            print "number of forams in image " + item + " is: " + str(res)
-
-            results_vector.append(res)
-
-        avg_Classifier_res = np.zeros(len(results_vector))
-        for num in avg_Classifier_res: 
-            num = np.average(true_val_Vector) 
-
-        print "results avg: " + str(np.average(results_vector))
-        print "true val avg: " + str(np.average(true_val_Vector))
-
-
-        print "'spit avg Classifier' mean squared error: " + str(metrics.mean_squared_error(true_val_Vector,avg_Classifier_res)) 
-        print "'spit avg Classifier' mean absolut error: " + str(metrics.mean_absolute_error(true_val_Vector,avg_Classifier_res)) 
-        
-        print "mean squared error: " + str(metrics.mean_squared_error(true_val_Vector,results_vector))
-        print "mean absolut error: " + str(metrics.mean_absolute_error(true_val_Vector,results_vector))  
-            
-    def classificationValidation(self):
-        '''
-        Main Validation function to validate model on
-        :param val_images: the numbers of the images. to be picked randomly.
-        '''
-
-        test_path = '../data/test1'
-        numofdata = len(os.listdir(test_path))
-        #pick 100 test images at random
-        test_num = random.sample(range(1, numofdata), 100) 
-        A = np.zeros(numofdata)        
-        for k in range(100):
-            A[test_num[k]] = 1 
-
-        clf = SVC(C=0.1, gamma=0.01, kernel='rbf') 
-        clf.fit(self.X,self.y)
-
-        fig, axes = plt.subplots(nrows=10, ncols=10)
-
-        counter = 0;
-
-        for i, item in enumerate(os.listdir(test_path)):
-            #print num
-            if A[i] == 1:
-
-                im = cv.imread(test_path + "/" + item)
+        for path in test_list:
+            for item in os.listdir(path): 
+                p = path + "/" + item
+                print p
+                im = cv.imread(p)
                 fe = FeatureExtractor(im)
-                feature_vector = fe.computeFeatureVector()
-                new_feature_vector = []
+                feature_vector = np.zeros(num_of_clusters)
+                raw_vector = fe.computeFeatureVector()
+                Km_vector = k_means.predict(raw_vector) 
+                for k in range(len(Km_vector)):
+                    feature_vector[Km_vector[k]] = feature_vector[Km_vector[k]] + 1 
 
-                for k, num in enumerate(feature_vector):
-                     if (self.features_list[k] == True):
-                         # Normalize feature vector
-                        max_feature = self.max_min_features[k][0]
-                        min_feature = self.max_min_features[k][1]
-                        new_feature_vector.append((feature_vector[k] - min_feature) / (max_feature - min_feature))
-                   
-                res = clf.predict(new_feature_vector)
-                print res
-
-                plt.subplot(10,10,counter)
-                plt.imshow(im)
-                plt.xticks([])
-                plt.yticks([])
-
+                res = clf.predict(feature_vector)
+                    
                 if res[0] == 1:
-                    #plt.title('positive')
-                     cv.namedWindow("positive" + str(counter),cv.WINDOW_NORMAL)
-                     cv.imshow("positive" + str(counter),im)
-                else:
-                    #plt.title('negative')
-                     cv.namedWindow("negative" + str(counter),cv.WINDOW_NORMAL)
-                     cv.imshow("negative" + str(counter),im)
-                
-                counter = counter+1
-            
-        fig.subplots_adjust(hspace=.5)
-        
-        plt.show()
+                    print p + " is not a foram!"
+                if res[0] == 0:
+                    print p + " is a foram!"
 
+                y_true.append(cl)
+                results_vector.append(res)
+            cl = cl + 1
 
+        print confusion_matrix(y_true,results_vector)
+ 
     def classificationCrossValidation(self):
         '''
         This function is used to cross validate the model using Grid Search Method.
@@ -206,9 +160,10 @@ class Classifier:
           self.X, self.y, test_size=0.5, random_state=0)
 
         # the parameters by cross-validation
-        tuned_parameters = [{'kernel': ['rbf'], 'gamma':[0.1,0.2,0.4,0.8,1,2,4,6,8,10] ,
-                            'C':[0.1 ,1, 10 ,100, 1000]}]
-        
+        tuned_parameters = [
+                        {'kernel': ['rbf'], 'gamma': [1e-3, 1e-4], 'C': [1, 10, 100, 1000]}
+                       ] 
+                            # {'kernel': ['linear'], 'C': [1, 10, 100, 1000]}                        
                             # [1e2,1e1,1e0,1e-1,1e-2,1e-3,1e-4,1e-6,1e-8,1e-10]
                             # [1e-5,1e-4,1e-2,1e-1,1e0,1e1,1e2,1e3,1e4]
 
@@ -217,7 +172,7 @@ class Classifier:
         print()
 
         clf = GridSearchCV(SVC(C=1), tuned_parameters, cv=5,
-                           scoring='accuracy')
+                           scoring='f1')
         
         clf.fit(X_train, y_train)
 

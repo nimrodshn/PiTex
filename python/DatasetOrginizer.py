@@ -30,7 +30,7 @@ class DatasetOrginizer:
         #pick number_of_split test images at random
         test_num = random.sample(range(1, numofdata), number_of_split) 
         A = np.zeros(numofdata)        
-        for k in range(20):
+        for k in range(78):
             A[test_num[k]] = 1 
         # create training set and test set
         training_set = []
@@ -69,7 +69,41 @@ class DatasetOrginizer:
                 for k, component in enumerate(components):         
                     cv.imwrite("../data/training_classification/negative/" + str(i) + str(k)+ ".jpg", component[0])
 
-    def createRegressionTrainingFromDataset(self, dataset_name,path, labels_list=None):
+    def splitDataForHoldout(self, positive_path, negative_path):
+        num_of_positive = len(os.listdir(positive_path))
+        num_of_negative = len(os.listdir(negative_path))
+        number_of_split = 10
+        #pick number_of_split test images at random
+        positive_num = random.sample(range(1, num_of_positive), number_of_split) 
+        negative_num = random.sample(range(1, num_of_negative), number_of_split) 
+        
+        B = np.zeros(num_of_negative)
+        A = np.zeros(num_of_positive)        
+        for k in range(number_of_split):
+            A[positive_num[k]] = 1 
+        for j in range(number_of_split):
+            B[negative_num[j]] = 1
+
+        holdout_set = []
+        for i, item in enumerate(os.listdir(positive_path)):
+            p = positive_path + "/" + item
+            print p # DEBUG
+            if A[i] == 1:  
+                holdout_set.append(positive_path + "/" + item)
+        
+        for k, item in enumerate(os.listdir(negative_path)):
+            p = negative_path + "/" + item
+            print p # DEBUG
+            if B[k] == 1:  
+                holdout_set.append(negative_path + "/" + item)
+        
+        print len(holdout_set)   
+        for j, path in enumerate(holdout_set):
+            im = cv.imread(path)
+            cv.imwrite("../data/holdout_classification/" + str(j) + ".jpg", im)
+            os.remove(path)
+
+    def createRegressionTrainingFromDataset(self, dataset_name, path, labels_list=None):
         '''
         Creates a new training set for REGRESSION PROBLEM to work on from given path list and labels.
         Notice path_list and path_labels are intended to be lists of the same length. see tests in __main__ for examples.
@@ -83,7 +117,6 @@ class DatasetOrginizer:
         labels = []
         trainingData = np.array([])
         classes = []
-        min_max_features = []
 
         ### Building the feature matrix.
         for item in os.listdir(path):     
@@ -98,12 +131,12 @@ class DatasetOrginizer:
                 np.vstack((trainingData, feature_vector))
                 
         ### DEBUG 
+        print "shape of Kmeans Training"
         print np.shape(trainingData)
-        print trainingData
         ### SAVING THE DATASETS TO NPZ FORMAT
-        np.savez(os.path.join(base_path, dataset_name), trainingData, labels_list, classes,  min_max_features)
+        np.savez(os.path.join(base_path, dataset_name), trainingData, labels_list, classes)
 
-    def createKmeansTrainingDataset(self,KmeansData, dataset_name, training_path_list, labels_list):
+    def createKmeansTrainingDataset(self,KmeansData, dataset_name, path_list, labels_list):
         '''
         Create Training for Kmeans With regression.
         '''
@@ -112,7 +145,7 @@ class DatasetOrginizer:
         Kmeanslabels = npzfile['arr_1']
         Kmeansclasses = npzfile['arr_2']
 
-        num_of_clusters = 100  # try 100 , 1000
+        num_of_clusters = 10  # try 100 , 1000
         k_means = cluster.KMeans(n_clusters=num_of_clusters)
         k_means.fit(KmeansData)
 
@@ -121,29 +154,52 @@ class DatasetOrginizer:
         labels = labels_list
         trainingData = []
         classes = []
-        min_max_features = []
+        cl=0
 
         ### Building the feature matrix.
-        for item in training_path_list:
+        for i, path in enumerate(path_list):
+            
+            print labels_list[i]
 
-            p = item
-            print p # DEBUG
-            im = cv.imread(p)
-            fe = FeatureExtractor(im)
-            feature_vector = np.zeros(num_of_clusters)
-            raw_vector = fe.computeFeatureVector()
-            Km_vector = k_means.predict(raw_vector) 
-            for i in range(len(Km_vector)):
-                feature_vector[Km_vector[i]] = feature_vector[Km_vector[i]] + 1 
+            for item in os.listdir(path):
+                p = path + "/" + item
+                print p # DEBUG
+                im = cv.imread(p)
+                fe = FeatureExtractor(im)
+                feature_vector = np.zeros(num_of_clusters)
+                raw_vector = fe.computeFeatureVector()
+                Km_vector = k_means.predict(raw_vector) 
+                for j in range(len(Km_vector)):
+                    feature_vector[Km_vector[j]] = feature_vector[Km_vector[j]] + 1 
+                trainingData.append(feature_vector)
+                classes.append(cl)
+            
+            if i == 0:
+                print "working on positive samples"
+                print "Original training size: (should be 68 by 10)"
+                print np.shape(trainingData)
+                print np.shape(classes)
+
+                for k in range(8):
+                    trainingData = np.vstack((trainingData, trainingData))
+                    classes = np.hstack((classes,classes))
                 
-            trainingData.append(feature_vector)
-
+                print "After Multipling Positive Samples by 8"
+                print np.shape(trainingData)
+                print np.shape(classes)
+                
+                trainingData = trainingData.tolist()
+                classes = classes.tolist()
+            
+            cl = cl + 1
+            
         ### DEBUG 
+        print "final shape: (should be 50,000~ by 10):"
         print np.shape(trainingData)
 
         ### SAVING THE DATASETS TO NPZ FORMAT
-        joblib.dump(k_means, 'KmeandPalmahim1.pkl', compress=9)
-        np.savez(os.path.join(base_path, dataset_name), trainingData, labels_list, classes,  min_max_features)
+        joblib.dump(k_means, 'KmeansBlobsPalmahim1.pkl', compress=9)
+        np.savez(os.path.join(base_path, dataset_name), trainingData, labels_list, classes)
 
     def createClassificationTrainingFromDataset(self, dataset_name, labels_list, path_list):
         '''
@@ -159,7 +215,6 @@ class DatasetOrginizer:
         labels = []
         trainingData = []
         classes = []
-        min_max_features = []
         cl = 0
 
         ### Building the feature matrix.
@@ -168,43 +223,29 @@ class DatasetOrginizer:
             labels.append(labels_list[i])
             print labels_list[i]
 
-
             for item in os.listdir(path):
-
                 p = path + "/" + item
                 print p # DEBUG
                 im = cv.imread(p)
-
                 fe = FeatureExtractor(im)
-
                 feature_vector = fe.computeFeatureVector()
-
-                trainingData.append(feature_vector)
+                if len(trainingData) == 0:
+                    trainingData = feature_vector
+                else:
+                    np.vstack((trainingData, feature_vector))           
                 classes.append(cl)
+            
+            print "vstack Kmeans Classifier: "
+            print np.shape(trainingData)
 
+            classes = np.array(classes)
             cl = cl + 1
-
-        ### Normalization of features to unit range [0,1].
-        B = np.asmatrix(trainingData)
-        num_columns = np.shape(B)[1]
-        num_rows = np.shape(B)[0]
-        for j in range(num_columns):
-            
-            print B[:,j]
-            ## computing min & max entrys in each feature category (column) in the feature matrix.
-            max_feature = np.max(B[:,j])
-            min_feature = np.min(B[:,j])
-            min_max_features.append((max_feature,min_feature)) # Keep max & min entrys of feature map for normalization purposes.    
-            
-            for i in range(num_rows):
-                B[i,j] = (B[i,j] - min_feature) / (max_feature - min_feature)
-               
 
         ### DEBUG 
         print np.shape(trainingData)
         print np.shape(classes)
 
         ### SAVING THE DATASETS TO NPZ FORMAT
-        np.savez(os.path.join(base_path, dataset_name), B, labels, classes,  min_max_features)
+        np.savez(os.path.join(base_path, dataset_name), trainingData, labels, classes)
 
 
