@@ -16,9 +16,9 @@ class DatasetOrginizer:
     def __init__(self):
        self._dataSets=[]
        
-    def splitDataForRegression(self,data_path,training_path,test_path):
+    def splitData(self,data_path,training_path,test_path):
         '''
-        split data in path into training-set and test-set.
+        splits data in path into training-set and test-set(data - images of plates/trays NOT blobs). 
         param data_path: the path where that data collected is found.
         paran training_path: the path where that training set is saved.
         param test_set: the path where that test set is saved.
@@ -50,7 +50,12 @@ class DatasetOrginizer:
             cv.imwrite("../data/holdout/" + str(i)+ ".jpg", im)
             os.remove("../data/training/" + str(i)+ ".jpg")
         
-    def splitDataForClassification(self, path_list, annotations):
+    def extractComponentsFromData(self, path_list, annotations):
+        '''
+        This method extracts the components from each image in the data.
+        If the annotation is inside a bounding rectangle then the component is labeld 'positive' else it is labeld 'negative'.  
+        '''
+
         for i, path in enumerate(path_list):
             im = cv.imread(path)
             ce = ComponentExtractor(im)
@@ -70,6 +75,9 @@ class DatasetOrginizer:
                     cv.imwrite("../data/training_classification/negative/" + str(i) + str(k)+ ".jpg", component[0])
 
     def splitDataForHoldout(self, positive_path, negative_path):
+        '''
+        Splits the data for holdout.
+        '''
         num_of_positive = len(os.listdir(positive_path))
         num_of_negative = len(os.listdir(negative_path))
         number_of_split = 10
@@ -136,7 +144,7 @@ class DatasetOrginizer:
         ### SAVING THE DATASETS TO NPZ FORMAT
         np.savez(os.path.join(base_path, dataset_name), trainingData, labels_list, classes)
 
-    def createKmeansTrainingDataset(self,KmeansData, dataset_name, path_list, labels_list):
+    def createKmeansTrainingDataset(self,KmeansData, dataset_name,kmeansName, path_list, labels_list, num_of_clusters):
         '''
         Create Training for Kmeans With regression.
         '''
@@ -145,7 +153,6 @@ class DatasetOrginizer:
         Kmeanslabels = npzfile['arr_1']
         Kmeansclasses = npzfile['arr_2']
 
-        num_of_clusters = 10  # try 100 , 1000
         k_means = cluster.KMeans(n_clusters=num_of_clusters)
         k_means.fit(KmeansData)
 
@@ -174,13 +181,15 @@ class DatasetOrginizer:
                 trainingData.append(feature_vector)
                 classes.append(cl)
             
+            # Here we multiply the number of POSITIVE samples in the training set so that the 'unbalanced' problems
+            # become 'balanced'.
             if i == 0:
                 print "working on positive samples"
                 print "Original training size: (should be 68 by 10)"
                 print np.shape(trainingData)
                 print np.shape(classes)
 
-                for k in range(8):
+                for k in range(9):
                     trainingData = np.vstack((trainingData, trainingData))
                     classes = np.hstack((classes,classes))
                 
@@ -194,11 +203,11 @@ class DatasetOrginizer:
             cl = cl + 1
             
         ### DEBUG 
-        print "final shape: (should be 50,000~ by 10):"
+        print "final shape: (should be 54,000~ by 10):"
         print np.shape(trainingData)
 
         ### SAVING THE DATASETS TO NPZ FORMAT
-        joblib.dump(k_means, 'KmeansBlobsPalmahim1.pkl', compress=9)
+        joblib.dump(k_means, kmeansName, compress=9)
         np.savez(os.path.join(base_path, dataset_name), trainingData, labels_list, classes)
 
     def createClassificationTrainingFromDataset(self, dataset_name, labels_list, path_list):

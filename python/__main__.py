@@ -51,11 +51,14 @@ def datasetOrginizerTrainKmeans():
         training_list.append(item['filename'])
         labels_list.append(len(item['annotations']))
 
-    ds.createRegressionTrainingFromDataset(dataset_name="kmeansPalmahim1",path=holdout_path)
+    print "number of labels/forams:"
+    print np.sum(labels_list)
 
-    ds.KmeansTrainingDataset(KmeansData="binData/kmeansPalmahim1.npz",dataset_name="trainingPalmahim1",labels_list=labels_list,training_path_list=training_list)
+    #ds.createRegressionTrainingFromDataset(dataset_name="kmeansPalmahim1",path=holdout_path)
 
-def resizeImagesTest():
+    #ds.KmeansTrainingDataset(KmeansData="binData/kmeansPalmahim1.npz",dataset_name="trainingPalmahim1",labels_list=labels_list,training_path_list=training_list)
+
+def resizeImages():
     path_list = ["../data/training_classification/negative", "../data/training_classification/positive", "../data/holdout_classification"] 
     for path in path_list:
         for item in os.listdir(path):
@@ -74,10 +77,11 @@ def splitDataForClassificationTest():
     for item in data:
         training_list.append(item['filename'])
         annotations.append(item['annotations'])
-    
+        
     path_list = ["../data/training_classification/positive", "../data/training_classification/negative"]
-    ds.splitDataForClassification(training_list,annotations)
-
+    # After splitting the data to positive and negative we then extract the 'positive' and 'negative' components using th following
+    ds.extractComponentsFromData(training_list,annotations)
+    # We then as pick randomly 10 'positive' and 10 'negative' samples for holdout. 
     negative_path = "../data/training_classification/negative"
     positive_path = '../data/training_classification/positive'
     ds.splitDataForHoldout(negative_path,positive_path)
@@ -87,8 +91,10 @@ def datasetOrginizerTrainClassification():
     class_list = ["positive","negative"]
     kmeans_path = ['../data/holdout_classification']
     path_list = ["../data/training_classification/positive", "../data/training_classification/negative"]
-    ds.createClassificationTrainingFromDataset(dataset_name="kmeansClassificationPalmahim1",labels_list=class_list, path_list=kmeans_path)
-    ds.createKmeansTrainingDataset(KmeansData="binData/kmeansClassificationPalmahim1.npz",dataset_name="classificationTrainingPalmahim1",labels_list=class_list, path_list=path_list)
+    # First create the k-means classifier for the classification using the "holdout set" (kmeans path)
+    ds.createClassificationTrainingFromDataset(dataset_name="kmeansClassificationPalmahim100",labels_list=class_list, path_list=kmeans_path)
+    # Second create the training matrix using the kmeans classifier created above used on the data given by the path list.
+    ds.createKmeansTrainingDataset(KmeansData="binData/kmeansClassificationPalmahim100.npz",kmeansName='KmeansBlobsPalmahim100.pkl',dataset_name="classificationTrainingPalmahim100",labels_list=class_list, path_list=path_list, num_of_clusters=100)
 
 def segmentationTest():
     im = cv.imread("..//Samples//slides//PL29II Nov 4-5 0134.tif")    
@@ -101,28 +107,31 @@ def segmentationTest():
         cv.imshow(str(i),component[0])
     cv.waitKey()
 
-def classifierTest():
-    img = cv.imread("..//Samples//slides//A0004.tif")
-    cv.namedWindow("Sample",cv.WINDOW_NORMAL)
-    cv.imshow("Sample",img)
-
-    cl = Classifier(Dataset="binData/test.npz")
-    #cl.posNegDecompose()
-    cl.plotPCA()
-    cv.waitKey()
-
 def validateClassifier():
-    cl = Classifier(Dataset="binData/classificationTrainingPalmahim1.npz",regression=False)
+    cl = Classifier(Dataset="binData/classificationTrainingPalmahim100.npz",regression=False)
     path_list = ["../data/training_classification/positive", "../data/training_classification/negative"]
+    kmeans = 'KmeansBlobsPalmahim100.pkl'
+    #cl.classificationValidation(path_list, kmeans,kernel='linear',gamma=None,C=1)            
+    Cs = [0.001,0.002,0.003,0.004]
+    gammas = [0.1]
+    kernels = ["rbf","linear"]
+    for kernel in kernels:
+        if kernel == 'linear':
+            gamma = None
+            for C in Cs:
+                cl.classificationValidation(path_list, kmeans,kernel=kernel,gamma=gamma,C=C)        
+        else:
+            for gamma in gammas:
+                for C in Cs:
+                    cl.classificationValidation(path_list, kmeans,kernel=kernel,gamma=gamma,C=C)
     
-    cl.classificationValidation(path_list)
     cv.waitKey()
 
 def crossValidateTest():
     cl = Classifier(Dataset="binData/classificationTrainingPalmahim1.npz",regression=False)
     #cl.plotHistogram()
-    cl.classificationCrossValidation()
     #cl.regressionCrossValidation(svr=True)
+    cl.classificationCrossValidation()
 
 if __name__ == '__main__':
     #main()
@@ -132,9 +141,8 @@ if __name__ == '__main__':
     #resizeImagesTest()
     #splitDataForClassificationTest()
     #datasetOrginizerTrainClassification()
-    #ClassifierTest()
     #crossValidateTest()
     #segmentationTest()
-    #DatasetOrginizerTrainKmeans()
+    #datasetOrginizerTrainKmeans()
     validateClassifier()
     

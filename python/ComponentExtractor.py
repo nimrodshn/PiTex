@@ -32,6 +32,7 @@ class ComponentExtractor:
         maxIntensity = 255.0 # depends on dtype of image data
 
         #Parameters for manipulating image data
+        
         phi = 1
         theta = 1
 
