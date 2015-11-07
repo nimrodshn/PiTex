@@ -9,11 +9,11 @@ import random
 
 class ComponentExtractor:
 
-    def __init__(self, inputImage):
+    def __init__(self, input_image):
         '''
         :param inputImage:
         '''
-        self._image = inputImage
+        self._image = input_image
 
     def extractComponents(self):
         '''

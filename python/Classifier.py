@@ -29,14 +29,14 @@ from sklearn.metrics import confusion_matrix
 
 class Classifier:
 
-    def __init__(self, Dataset, regression):
+    def __init__(self, dataset, regression):
         '''
         :param :
         a. Dataset: Path to a given training dataset in the format of npz. (see DatasetOrginizer Class.)
         b. Input Image to classify.
         c. regression: regression model or Classifier model.
         '''
-        npzfile = np.load(Dataset)
+        npzfile = np.load(dataset)
         trainingData = npzfile['arr_0']
         labels = npzfile['arr_1']
         classes = npzfile['arr_2']
@@ -111,7 +111,7 @@ class Classifier:
         plt.yticks([])
         plt.show()
 
-    def classificationValidation(self,test_list, KmeansName, kernel, C, gamma):
+    def classificationValidation(self,test_list, kmeans_path, kernel, C, gamma):
         '''
         Main classification Validation function to validate model on
         :param true_val_Vector: true values of test set.
@@ -133,7 +133,7 @@ class Classifier:
         y_true = []
         cl=0
 
-        k_means = joblib.load(KmeansName)
+        k_means = joblib.load(kmeans_name)
 
         [m,num_of_clusters] = np.shape(self.X)
 

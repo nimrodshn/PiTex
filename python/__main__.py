@@ -33,31 +33,6 @@ def main():
 
 ########### TESTS ###########
 
-def datasetOrginizerTrainKmeans():
-    ds = DatasetOrginizer()
-    
-    data_path = "../Samples/Palmahim1"
-    holdout_path = "../data/holdout"
-    training_path = "../data/training"
-    test_path = "../data/test"
-    #ds.splitData(data_path,training_path,test_path)
-
-    with open('../data/trainingAnnotations.json') as data_file:    
-        data = json.load(data_file)
-    
-    training_list = []
-    labels_list = []
-    for item in data:
-        training_list.append(item['filename'])
-        labels_list.append(len(item['annotations']))
-
-    print "number of labels/forams:"
-    print np.sum(labels_list)
-
-    #ds.createRegressionTrainingFromDataset(dataset_name="kmeansPalmahim1",path=holdout_path)
-
-    #ds.KmeansTrainingDataset(KmeansData="binData/kmeansPalmahim1.npz",dataset_name="trainingPalmahim1",labels_list=labels_list,training_path_list=training_list)
-
 def resizeImages():
     path_list = ["../data/training_classification/negative", "../data/training_classification/positive", "../data/holdout_classification"] 
     for path in path_list:
@@ -94,7 +69,7 @@ def datasetOrginizerTrainClassification():
     # First create the k-means classifier for the classification using the "holdout set" (kmeans path)
     ds.createClassificationTrainingFromDataset(dataset_name="kmeansClassificationPalmahim100",labels_list=class_list, path_list=kmeans_path)
     # Second create the training matrix using the kmeans classifier created above used on the data given by the path list.
-    ds.createKmeansTrainingDataset(KmeansData="binData/kmeansClassificationPalmahim100.npz",kmeansName='KmeansBlobsPalmahim100.pkl',dataset_name="classificationTrainingPalmahim100",labels_list=class_list, path_list=path_list, num_of_clusters=100)
+    ds.createKmeansTrainingDataset(kmeans_data="binData/kmeansClassificationPalmahim100.npz",kmeans_name='KmeansBlobsPalmahim100.pkl',dataset_name="classificationTrainingPalmahim100",labels_list=class_list, path_list=path_list, num_of_clusters=100)
 
 def segmentationTest():
     im = cv.imread("..//Samples//slides//PL29II Nov 4-5 0134.tif")    
@@ -108,9 +83,9 @@ def segmentationTest():
     cv.waitKey()
 
 def validateClassifier():
-    cl = Classifier(Dataset="binData/classificationTrainingPalmahim100.npz",regression=False)
+    cl = Classifier(dataset="binData/classificationTrainingPalmahim100.npz",regression=False)
     path_list = ["../data/training_classification/positive", "../data/training_classification/negative"]
-    kmeans = 'KmeansBlobsPalmahim100.pkl'
+    kmeans_path = 'binData/KmeansBlobsPalmahim100.pkl'
     #cl.classificationValidation(path_list, kmeans,kernel='linear',gamma=None,C=1)            
     Cs = [0.001,0.002,0.003,0.004]
     gammas = [0.1]
@@ -128,7 +103,7 @@ def validateClassifier():
     cv.waitKey()
 
 def crossValidateTest():
-    cl = Classifier(Dataset="binData/classificationTrainingPalmahim1.npz",regression=False)
+    cl = Classifier(dataset="binData/classificationTrainingPalmahim1.npz",regression=False)
     #cl.plotHistogram()
     #cl.regressionCrossValidation(svr=True)
     cl.classificationCrossValidation()

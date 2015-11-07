@@ -7,8 +7,6 @@ from skimage.feature import local_binary_pattern
 import matplotlib.pyplot as plt
 
 
-# TODO: 
-
 class FeatureExtractor:
     def __init__(self,input):
         self.im = input

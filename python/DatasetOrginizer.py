@@ -16,7 +16,7 @@ class DatasetOrginizer:
     def __init__(self):
        self._dataSets=[]
        
-    def splitData(self,data_path,training_path,test_path):
+    def splitData(self,data_path, training_path, test_path, number_of_forams):
         '''
         splits data in path into training-set and test-set(data - images of plates/trays NOT blobs). 
         param data_path: the path where that data collected is found.
@@ -30,7 +30,7 @@ class DatasetOrginizer:
         #pick number_of_split test images at random
         test_num = random.sample(range(1, numofdata), number_of_split) 
         A = np.zeros(numofdata)        
-        for k in range(78):
+        for k in range(78): 
             A[test_num[k]] = 1 
         # create training set and test set
         training_set = []
@@ -111,50 +111,23 @@ class DatasetOrginizer:
             cv.imwrite("../data/holdout_classification/" + str(j) + ".jpg", im)
             os.remove(path)
 
-    def createRegressionTrainingFromDataset(self, dataset_name, path, labels_list=None):
-        '''
-        Creates a new training set for REGRESSION PROBLEM to work on from given path list and labels.
-        Notice path_list and path_labels are intended to be lists of the same length. see tests in __main__ for examples.
-        :param dataset_name: the name of the data set
-        :param path_list: a list of pathes frome which the images are collected.
-        :param labels_list: a list of labels to use for the images collected from corresponding path. (i.e. first label correspond to first path in the path list.)
-        '''
-
-        base_path = "binData/"
-
-        labels = []
-        trainingData = np.array([])
-        classes = []
-
-        ### Building the feature matrix.
-        for item in os.listdir(path):     
-            p = path + "/" + item
-            print p # DEBUG
-            im = cv.imread(p)
-            fe = FeatureExtractor(im)
-            feature_vector = fe.computeFeatureVector()
-            if len(trainingData) == 0:
-                trainingData = feature_vector
-            else:
-                np.vstack((trainingData, feature_vector))
-                
-        ### DEBUG 
-        print "shape of Kmeans Training"
-        print np.shape(trainingData)
-        ### SAVING THE DATASETS TO NPZ FORMAT
-        np.savez(os.path.join(base_path, dataset_name), trainingData, labels_list, classes)
-
-    def createKmeansTrainingDataset(self,KmeansData, dataset_name,kmeansName, path_list, labels_list, num_of_clusters):
+    def createKmeansTrainingDataset(self,kmeans_data, dataset_name, kmeans_name, path_list, labels_list, num_of_clusters):
         '''
         Create Training for Kmeans With regression.
+        :param: KmeansData: the training matrix obtained using createClassificationTrainingFromDataset method on the HOLDOUT set.
+        :param: kmeansName: the name of the Kmeans classifier to be saved and pickeled.
+        :param: dataset_name: the name of the NEW dataset created using the Kmeans classifier on the training. i.e. clustering the feature vector.
+        :param: path_list: list of paths where the training set is at.
+        :param: labels_list: the list of labels for the samples in the training set.
+        :param: num_of_clusters: the number of clusters for the Kmeans classifier.        
         '''
-        npzfile = np.load(KmeansData)
+        npzfile = np.load(kmeans_data)
         KmeansData = npzfile['arr_0']
         Kmeanslabels = npzfile['arr_1']
         Kmeansclasses = npzfile['arr_2']
 
         k_means = cluster.KMeans(n_clusters=num_of_clusters)
-        k_means.fit(KmeansData)
+        k_means.fit(kmeans_data)
 
         base_path = "binData/"
 
@@ -181,8 +154,8 @@ class DatasetOrginizer:
                 trainingData.append(feature_vector)
                 classes.append(cl)
             
-            # Here we multiply the number of POSITIVE samples in the training set so that the 'unbalanced' problems
-            # become 'balanced'.
+            # Here we multiply the number of POSITIVE samples in the training set so that the 'unbalanced' problem of "Foram vs. Not-Foram"
+            # 'becomes balanced'.
             if i == 0:
                 print "working on positive samples"
                 print "Original training size: (should be 68 by 10)"
@@ -207,7 +180,7 @@ class DatasetOrginizer:
         print np.shape(trainingData)
 
         ### SAVING THE DATASETS TO NPZ FORMAT
-        joblib.dump(k_means, kmeansName, compress=9)
+        joblib.dump(k_means, os.path.join(base_path, kmeans_name), compress=9)
         np.savez(os.path.join(base_path, dataset_name), trainingData, labels_list, classes)
 
     def createClassificationTrainingFromDataset(self, dataset_name, labels_list, path_list):
